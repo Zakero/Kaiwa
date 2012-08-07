@@ -14,6 +14,8 @@ will be lost.
 The goal of this project is to experiment with how to make a distributed
 communication system.
 
+The User Interface will be based on __Qt4__.
+
 Road Map
 --------
  - _v0.3_
@@ -48,6 +50,7 @@ Bugs
 Future
 ------
  - Secure network connections
+ - Multi-Channel support
  - Send data to user (ie: images)
  - Bot Support
    - BanBot
