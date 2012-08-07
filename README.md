@@ -65,7 +65,7 @@ Developers
 ----------
 
 The first time you clone or make any invasive changes, run the setup script:  
-`> ./setup.sh`
+`> ./setup.sh`  
 This will create a new QT Project file and a new Makefile.
 
 If any changes need to be make to the QT Project file, place these changes in
