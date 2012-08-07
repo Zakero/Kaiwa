@@ -1,1 +1,8 @@
 .*.sw?
+.obj/
+.moc/
+.rcc/
+.ui/
+Kaiwa
+Kaiwa.pro
+Makefile

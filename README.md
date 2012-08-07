@@ -59,3 +59,18 @@ Future
      Record all message traffic to a log file
    - UrlBot
      Display the HTML title of URLs
+
+
+Developers
+----------
+
+The first time you clone or make any invasive changes, run the setup script:  
+`> ./setup.sh`
+This will create a new QT Project file and a new Makefile.
+
+If any changes need to be make to the QT Project file, place these changes in
+setup script instead.  This will allow qmake to do the heavy lifting when new
+source code is added or moved around.  Then the script will add the finishing
+touches.
+
+And finally: `make && ./Kaiwa`
