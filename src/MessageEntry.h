@@ -88,7 +88,12 @@ class MessageEntry
 			);
 
 	signals:
-		void send(const QTime&, const QString&);
+		/**
+		 * \brief Send the entered message.
+		 */
+		void send(const QTime&   //!< When the message was created.
+			, const QString& //!< The message.
+			);
 
 	public slots:
 		/**

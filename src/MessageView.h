@@ -89,7 +89,12 @@ class MessageView
 	signals:
 
 	public slots:
-		void addMessage(const QTime&, const QString&);
+		/**
+		 * \brief Send the entered message.
+		 */
+		void addMessage(const QTime& //!< When the message was created.
+			, const QString&     //!< The message.
+			);
 
 		/**
 		 * \brief Determine how many message to hold.
