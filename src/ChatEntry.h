@@ -1,3 +1,22 @@
+/******************************************************************************
+ * Copyright 2012 Andrew Moore
+ *
+ * This file is part of Kaiwa.
+ *
+ * Kaiwa is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kaiwa is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kaiwa.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef CHATENTRY_H
 #define CHATENTRY_H
 
@@ -68,11 +87,9 @@ class ChatEntry
 		ChatEntry(QWidget* parent = 0 //!< The parent widget.
 			);
 
-	/*
 	signals:
 		void send(const QTime&, const QString&);
 
-	*/
 	public slots:
 		/**
 		 * \brief Set the text of this widget.
@@ -96,7 +113,7 @@ class ChatEntry
 
 	private:
 		QLineEdit* line_edit;
-		QPushButton* button;
+		QPushButton* send_button;
 };
 
 #endif
