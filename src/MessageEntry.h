@@ -17,8 +17,8 @@
  * along with Kaiwa.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHATENTRY_H
-#define CHATENTRY_H
+#ifndef MESSAGEENTRY_H
+#define MESSAGEENTRY_H
 
 /******************************************************************************
  * Defines
@@ -73,7 +73,7 @@ class QPushButton;
  * +-----------------------------+
  * \endcode
  */
-class ChatEntry
+class MessageEntry
 	: public QWidget
 {
 	Q_OBJECT
@@ -82,9 +82,9 @@ class ChatEntry
 		/**
 		 * \brief Constructor
 		 *
-		 * Create a new instance of the ChatEntry Widget.
+		 * Create a new instance of the MessageEntry Widget.
 		 */
-		ChatEntry(QWidget* parent = 0 //!< The parent widget.
+		MessageEntry(QWidget* parent = 0 //!< The parent widget.
 			);
 
 	signals:

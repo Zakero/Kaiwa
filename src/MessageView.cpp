@@ -35,7 +35,7 @@
 #include <QTime>
 
 // Local
-#include "ChatView.h"
+#include "MessageView.h"
 
 /******************************************************************************
  * Active Namespaces
@@ -53,18 +53,18 @@
 
 
 /******************************************************************************
- * Class Variables: ChatView
+ * Class Variables: MessageView
  */
 
 /******************************************************************************
- * Class Methods: ChatView
+ * Class Methods: MessageView
  */
 
 /**
  * \internal
  * Establish Signal/Slot connections and initial widget state.
  */
-ChatView::ChatView(QWidget* parent)
+MessageView::MessageView(QWidget* parent)
 	: QWidget(parent)
 	, text_edit(new QTextEdit(this))
 {
@@ -73,7 +73,7 @@ ChatView::ChatView(QWidget* parent)
 /**
  * \internal
  */
-void ChatView::addMessage(const QTime& time, const QString& message)
+void MessageView::addMessage(const QTime& time, const QString& message)
 {
 	QString string;
 
@@ -86,6 +86,6 @@ void ChatView::addMessage(const QTime& time, const QString& message)
 /**
  * \internal
  */
-void ChatView::setHistorySize(int message_count)
+void MessageView::setHistorySize(int message_count)
 {
 }

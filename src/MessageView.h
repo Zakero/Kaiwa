@@ -17,8 +17,8 @@
  * along with Kaiwa.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHATVIEW_H
-#define CHATVIEW_H
+#ifndef MESSAGEVIEW_H
+#define MESSAGEVIEW_H
 
 /******************************************************************************
  * Defines
@@ -72,7 +72,7 @@ class QTextEdit;
  * - Message
  *   The message that was sent.
  */
-class ChatView
+class MessageView
 	: public QWidget
 {
 	Q_OBJECT
@@ -81,9 +81,9 @@ class ChatView
 		/**
 		 * \brief Constructor
 		 *
-		 * Create a new instance of the ChatView Widget.
+		 * Create a new instance of the MessageView Widget.
 		 */
-		ChatView(QWidget* = 0 //!< The parent widget.
+		MessageView(QWidget* = 0 //!< The parent widget.
 			);
 
 	signals:

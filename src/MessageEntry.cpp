@@ -35,7 +35,7 @@
 #include <QTime>
 
 // Local
-#include "ChatEntry.h"
+#include "MessageEntry.h"
 
 /******************************************************************************
  * Active Namespaces
@@ -53,18 +53,18 @@
 
 
 /******************************************************************************
- * Class Variables: ChatEntry
+ * Class Variables: MessageEntry
  */
 
 /******************************************************************************
- * Class Methods: ChatEntry
+ * Class Methods: MessageEntry
  */
 
 /**
  * \internal
  * Establish Signal/Slot connections and initial widget state.
  */
-ChatEntry::ChatEntry(QWidget* parent)
+MessageEntry::MessageEntry(QWidget* parent)
 	: QWidget(parent)
 	, line_edit(new QLineEdit())
 	, send_button(new QPushButton(tr("Send")))
@@ -98,7 +98,7 @@ ChatEntry::ChatEntry(QWidget* parent)
  * - The `line_edit` is not empty
  * - The `line_edit` contains something other than whitespace
  */
-void ChatEntry::enableSendButton()
+void MessageEntry::enableSendButton()
 {
 	if(line_edit->text().trimmed().isEmpty())
 	{
@@ -120,7 +120,7 @@ void ChatEntry::enableSendButton()
  * - Clear the data from `line_edit`
  * - Disable the `send_button`
  */
-void ChatEntry::send()
+void MessageEntry::send()
 {
 	if(send_button->isEnabled() == false)
 	{
@@ -139,7 +139,7 @@ void ChatEntry::send()
  * \internal
  * Pass the string to `line_edit`.
  */
-void ChatEntry::setText(const QString& string)
+void MessageEntry::setText(const QString& string)
 {
 	line_edit->setText(string);
 }

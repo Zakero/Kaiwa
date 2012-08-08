@@ -20,15 +20,15 @@
 #include <QApplication>
 #include <QVBoxLayout>
 
-#include "ChatEntry.h"
-#include "ChatView.h"
+#include "MessageEntry.h"
+#include "MessageView.h"
 
 int main(int arc, char** argv)
 {
 	QApplication app(arc, argv);
 	
-	ChatEntry* chat_entry = new ChatEntry();
-	ChatView* chat_view = new ChatView();
+	MessageEntry* chat_entry = new MessageEntry();
+	MessageView* chat_view = new MessageView();
 
 	QObject::connect(
 		chat_entry, SIGNAL(send(const QTime&, const QString&)),
