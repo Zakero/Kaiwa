@@ -28,10 +28,12 @@
 // ANSI/POSIX
 
 // Qt
-#include <QApplication>
+#include <QVBoxLayout>
 
 // Local
 #include "Kaiwa.h"
+#include "MessageEntry.h"
+#include "MessageView.h"
 
 
 /******************************************************************************
@@ -43,18 +45,37 @@
  * Functions: Public
  */
 
-int main(int arc, char** argv)
-{
-	QApplication app(arc, argv);
-	
-	Kaiwa kaiwa;
-	kaiwa.show();
-
-	return app.exec();
-}
-
 
 /******************************************************************************
  * Functions: Private
  */
 
+
+/******************************************************************************
+ * Class Variables: Kaiwa
+ */
+
+
+/******************************************************************************
+ * Class Methods: Kaiwa
+ */
+
+Kaiwa::Kaiwa()
+	: QMainWindow()
+	, message_entry(new MessageEntry())
+	, message_view(new MessageView())
+{
+	connect(
+		message_entry, SIGNAL(send(const QTime&, const QString&)),
+		message_view, SLOT(addMessage(const QTime&, const QString&))
+		);
+
+	QVBoxLayout* layout = new QVBoxLayout();
+	layout->addWidget(message_view, 1);
+	layout->addWidget(message_entry);
+
+	QWidget* message_area = new QWidget();
+	message_area->setLayout(layout);
+
+	setCentralWidget(message_area);
+}

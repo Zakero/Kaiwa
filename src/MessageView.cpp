@@ -26,16 +26,15 @@
  * Includes
  */
 // ANSI/POSIX
-#include <stdio.h>
 
 // Qt
-#include <QChar>
 #include <QString>
 #include <QTextEdit>
 #include <QTime>
 
 // Local
 #include "MessageView.h"
+
 
 /******************************************************************************
  * Active Namespaces
@@ -62,7 +61,6 @@
 
 /**
  * \internal
- * Establish Signal/Slot connections and initial widget state.
  */
 MessageView::MessageView(QWidget* parent)
 	: QWidget(parent)

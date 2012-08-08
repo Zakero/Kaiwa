@@ -17,6 +17,9 @@
  * along with Kaiwa.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef KAIWA_H
+#define KAIWA_H
+
 /******************************************************************************
  * Defines
  */
@@ -25,13 +28,12 @@
 /******************************************************************************
  * Includes
  */
-// ANSI/POSIX
+//ANSI/POSIX
 
 // Qt
-#include <QApplication>
+#include <QMainWindow>
 
 // Local
-#include "Kaiwa.h"
 
 
 /******************************************************************************
@@ -40,21 +42,37 @@
 
 
 /******************************************************************************
- * Functions: Public
+ * Forward Declarations
  */
 
-int main(int arc, char** argv)
-{
-	QApplication app(arc, argv);
-	
-	Kaiwa kaiwa;
-	kaiwa.show();
-
-	return app.exec();
-}
+class MessageEntry;
+class MessageView;
 
 
 /******************************************************************************
- * Functions: Private
+ * Typedefs
  */
 
+
+/******************************************************************************
+ * Structures
+ */
+
+
+/******************************************************************************
+ * Classes
+ */
+
+class Kaiwa
+	: public QMainWindow
+{
+	Q_OBJECT
+
+	public:
+		Kaiwa();
+
+	private:
+		MessageEntry* message_entry;
+		MessageView* message_view;
+};
+#endif
