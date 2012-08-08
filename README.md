@@ -82,8 +82,8 @@ And finally: `make && ./Kaiwa`
 To create the documentation, you will need [Doxygen][].  And if you want to
 make the graphs, you will also need [Dot][Graphviz].
 
-Use the following command to generate the documentation:
-`doxygen Doxyfile`
+Use the following command to generate the documentation:  
+`> doxygen Doxyfile`
 
 
 [Doxygen]:  http://www.stack.nl/~dimitri/doxygen "Doxygen"
