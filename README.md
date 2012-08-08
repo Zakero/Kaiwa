@@ -21,9 +21,9 @@ Road Map
  - _v0.3_
    - Communication via N nodes
      - `N >= 3`
-     - `N1 <-> N2 <-> N3`
-       - Automatic link repair if `N2` drops
-         - `N1 <-> N3`
+     - Automatic link repair if `N2` drops
+       1. `N1 <-> N2 <-> N3`
+       1. `N1 <-> N3`
  - _v0.2_
    - Communication between 2 nodes
      - Simple point-2-point message passing
