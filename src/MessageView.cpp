@@ -28,8 +28,10 @@
 // ANSI/POSIX
 
 // Qt
+#include <QHeaderView>
+#include <QLabel>
 #include <QString>
-#include <QTextEdit>
+#include <QTableWidget>
 #include <QTime>
 
 // Local
@@ -64,8 +66,10 @@
  */
 MessageView::MessageView(QWidget* parent)
 	: QWidget(parent)
-	, text_edit(new QTextEdit(this))
+	, table(new QTableWidget(this))
 {
+	this->table->setColumnCount(2);
+	this->table->verticalHeader()->setVisible(false);
 }
 
 /**
@@ -73,10 +77,14 @@ MessageView::MessageView(QWidget* parent)
  */
 void MessageView::addMessage(const QTime& time, const QString& message)
 {
-	QString string;
+	int row = table->rowCount();
 
-	string.append(time.toString()).append(" - ").append(message);
-	text_edit->append(string);
+	table->insertRow(row);
+	table->setCellWidget(row, 0, new QLabel(time.toString()));
+	table->setCellWidget(row, 1, new QLabel(message));
+	table->resizeColumnsToContents();
+
+	table->scrollToItem(table->item(row, 0));
 
 	return;
 }
@@ -86,4 +94,5 @@ void MessageView::addMessage(const QTime& time, const QString& message)
  */
 void MessageView::setHistorySize(int message_count)
 {
+	message_count = message_count;
 }

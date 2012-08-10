@@ -43,7 +43,7 @@
 /******************************************************************************
  * Forward Declarations
  */
-class QTextEdit;
+class QTableWidget;
 
 
 /******************************************************************************
@@ -65,8 +65,10 @@ class QTextEdit;
  *
  * Display chat messages as well as information about the messages.  This will 
  * be accomplished by using 3 columns:
- * - Time [TODO]
- *   When the message was sent (not recieved).
+ * - Sent Time
+ *   When the message was sent.
+ * - Recieved Time [TODO]
+ *   When the message was recieved.
  * - User [TODO]
  *   The name of the user that sent the message.
  * - Message
@@ -108,7 +110,7 @@ class MessageView
 	private slots:
 
 	private:
-		QTextEdit* text_edit;
+		QTableWidget* table;
 };
 
 #endif
