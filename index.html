@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Kaiwa by Zakero</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/Zakero/Kaiwa">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/Zakero/Kaiwa/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/Zakero/Kaiwa/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Kaiwa</h1>
+          <p>A distributed internet chat application.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/Zakero">Zakero</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>Kaiwa</h1>
+
+<p>A distributed internet chat application.
+"Kaiwa" (kai-wa) is the Japanese word for "communication".</p>
+
+<h2>Why Another Chat Program</h2>
+
+<p>Most IRC type programs, like X-Chat, rely on a client-server model.  And if the
+server becomes unavailable for some reason, communication among the clients
+will be lost.</p>
+
+<p>The goal of this project is to experiment with how to make a distributed
+communication system.</p>
+
+<p>The User Interface will be based on <strong>Qt4</strong>.</p>
+
+<h2>Developers</h2>
+
+<h3>Building The Project</h3>
+
+<p>The first time you clone or make any invasive changes, run the setup script:</p>
+
+<pre><code>&gt; ./setup.sh
+</code></pre>
+
+<p>This will create a new QT Project file and a new Makefile.</p>
+
+<p>If any changes need to be make to the QT Project file, place these changes in
+setup script instead.  This will allow qmake to do the heavy lifting when new
+source code is added or moved around.  Then the script will add the finishing
+touches.</p>
+
+<p>And finally:</p>
+
+<pre><code>make &amp;&amp; ./Kaiwa
+</code></pre>
+
+<h3>Generating The Documentation</h3>
+
+<p>To create the documentation, you will need <a href="http://www.stack.nl/%7Edimitri/doxygen" title="Doxygen">Doxygen</a>.  And if you want to
+make the graphs, you will also need <a href="http://www.graphviz.org/" title="Graphviz">Dot</a>.</p>
+
+<p>Use the following command to generate the documentation:</p>
+
+<pre><code>&gt; doxygen Doxyfile
+</code></pre>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
