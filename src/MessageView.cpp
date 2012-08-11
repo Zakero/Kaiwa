@@ -28,6 +28,7 @@
 // ANSI/POSIX
 
 // Qt
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QString>
@@ -66,10 +67,14 @@
  */
 MessageView::MessageView(QWidget* parent)
 	: QWidget(parent)
-	, table(new QTableWidget(this))
+	, table(new QTableWidget())
 {
 	this->table->setColumnCount(2);
 	this->table->verticalHeader()->setVisible(false);
+
+	QHBoxLayout* layout = new QHBoxLayout();
+	layout->addWidget(this->table);
+	this->setLayout(layout);
 }
 
 /**
