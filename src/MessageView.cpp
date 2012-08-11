@@ -33,6 +33,7 @@
 #include <QLabel>
 #include <QString>
 #include <QTableWidget>
+#include <QTableWidgetItem>
 #include <QTime>
 
 // Local
@@ -72,6 +73,15 @@ MessageView::MessageView(QWidget* parent)
 	this->table->setColumnCount(2);
 	this->table->verticalHeader()->setVisible(false);
 
+	this->table->setHorizontalHeaderItem(0
+		, new QTableWidgetItem("Sent")
+		);
+	this->table->setHorizontalHeaderItem(1
+		, new QTableWidgetItem("Message")
+		);
+
+	table->resizeColumnsToContents();
+
 	QHBoxLayout* layout = new QHBoxLayout();
 	layout->addWidget(this->table);
 	this->setLayout(layout);
@@ -85,8 +95,9 @@ void MessageView::addMessage(const QTime& time, const QString& message)
 	int row = table->rowCount();
 
 	table->insertRow(row);
-	table->setCellWidget(row, 0, new QLabel(time.toString()));
-	table->setCellWidget(row, 1, new QLabel(message));
+	table->setItem(row, 0, new QTableWidgetItem(time.toString()));
+	table->setItem(row, 1, new QTableWidgetItem(message));
+
 	table->resizeColumnsToContents();
 
 	table->scrollToItem(table->item(row, 0));
