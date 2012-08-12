@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 // Qt
+#include <QAbstractItemView>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -89,6 +90,7 @@ MessageView::MessageView(QWidget* parent)
 	this->table->setColumnCount(ColumnCount);
 	this->table->verticalHeader()->setVisible(false);
 	this->table->resizeColumnsToContents();
+	this->table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 	this->table->setShowGrid(false);
 
 	this->table->setHorizontalHeaderItem(Index
