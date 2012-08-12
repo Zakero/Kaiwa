@@ -104,13 +104,14 @@ class MessageView
 		 * The contents of the text entry will be set to the provided 
 		 * string.  The current contents will be lost.
 		 */
-		void setHistorySize(int = 100 //!< The number messages
+		void setHistorySize(int = 5 //!< The number messages
 			);
 
 	private slots:
 
 	private:
 		QTableWidget* table;
+		int max_rows;
 };
 
 #endif

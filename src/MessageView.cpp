@@ -26,6 +26,7 @@
  * Includes
  */
 // ANSI/POSIX
+#include <stdio.h>
 
 // Qt
 #include <QHBoxLayout>
@@ -46,6 +47,17 @@
 
 
 /******************************************************************************
+ * Global Variables
+ */
+enum ColumnNames
+{	Index
+,	TimeSent
+,	Message
+,	ColumnCount
+};
+
+
+/******************************************************************************
  * Functions: Public
  */
 
@@ -59,6 +71,7 @@
  * Class Variables: MessageView
  */
 
+
 /******************************************************************************
  * Class Methods: MessageView
  */
@@ -69,14 +82,19 @@
 MessageView::MessageView(QWidget* parent)
 	: QWidget(parent)
 	, table(new QTableWidget())
+	, max_rows(5)
 {
-	this->table->setColumnCount(2);
+	this->table->setColumnCount(ColumnCount);
 	this->table->verticalHeader()->setVisible(false);
 
-	this->table->setHorizontalHeaderItem(0
+	this->table->setHorizontalHeaderItem(Index
+		, new QTableWidgetItem("#")
+		);
+
+	this->table->setHorizontalHeaderItem(TimeSent
 		, new QTableWidgetItem("Sent")
 		);
-	this->table->setHorizontalHeaderItem(1
+	this->table->setHorizontalHeaderItem(Message
 		, new QTableWidgetItem("Message")
 		);
 
@@ -89,18 +107,45 @@ MessageView::MessageView(QWidget* parent)
 
 /**
  * \internal
+ * Individual columns have the following properties based on name
+ * - column index
+ * - is visible
+ * - flags (editable, dragable, etc..able)
  */
 void MessageView::addMessage(const QTime& time, const QString& message)
 {
+	static Qt::ItemFlags flags[] =
+	{	Qt::NoItemFlags    // Index
+	,	Qt::ItemIsEnabled  // TimeSent
+	,	Qt::ItemIsEnabled  // Message
+		| Qt::ItemIsSelectable
+		| Qt::ItemIsDragEnabled
+	};
+
 	int row = table->rowCount();
 
 	table->insertRow(row);
-	table->setItem(row, 0, new QTableWidgetItem(time.toString()));
-	table->setItem(row, 1, new QTableWidgetItem(message));
+
+	table->setItem(row, Index
+		, new QTableWidgetItem(
+			QString::number(row)
+			)
+		);
+	table->item(row, 0)->setFlags(flags[Index]);
+
+	// Set Margin...
+	QLabel* label;
+	label = new QLabel(time.toString());
+	label->setMargin(3);
+	table->setCellWidget(row, TimeSent, label);
+
+	table->setItem(row, Message, new QTableWidgetItem(message));
+	table->item(row, Message)->setFlags(flags[Message]);
 
 	table->resizeColumnsToContents();
+	table->resizeRowsToContents();
 
-	table->scrollToItem(table->item(row, 0));
+	table->scrollToItem(table->item(row, Index));
 
 	return;
 }
