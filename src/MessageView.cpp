@@ -52,6 +52,7 @@
 enum ColumnNames
 {	Index
 ,	TimeSent
+,	TimeReceived
 ,	UserName
 ,	Message
 ,	ColumnCount
@@ -87,22 +88,24 @@ MessageView::MessageView(QWidget* parent)
 {
 	this->table->setColumnCount(ColumnCount);
 	this->table->verticalHeader()->setVisible(false);
+	this->table->resizeColumnsToContents();
+	this->table->setShowGrid(false);
 
 	this->table->setHorizontalHeaderItem(Index
 		, new QTableWidgetItem("#")
 		);
-
 	this->table->setHorizontalHeaderItem(TimeSent
-		, new QTableWidgetItem("Sent")
+		, new QTableWidgetItem("Time Sent")
+		);
+	this->table->setHorizontalHeaderItem(TimeReceived
+		, new QTableWidgetItem("Time Received")
 		);
 	this->table->setHorizontalHeaderItem(UserName
-		, new QTableWidgetItem("UserName")
+		, new QTableWidgetItem("User")
 		);
 	this->table->setHorizontalHeaderItem(Message
 		, new QTableWidgetItem("Message")
 		);
-
-	table->resizeColumnsToContents();
 
 	QHBoxLayout* layout = new QHBoxLayout();
 	layout->addWidget(this->table);
@@ -115,12 +118,14 @@ MessageView::MessageView(QWidget* parent)
  * - column index
  * - is visible
  * - flags (editable, dragable, etc..able)
+ * - alignment
  */
 void MessageView::addMessage(const QTime& time, const QString& username, const QString& message)
 {
 	static Qt::ItemFlags flags[] =
 	{	Qt::NoItemFlags    // Index
 	,	Qt::ItemIsEnabled  // TimeSent
+	,	Qt::ItemIsEnabled  // TimeReceived
 	,	Qt::ItemIsEnabled  // UserName
 	,	Qt::ItemIsEnabled  // Message
 		| Qt::ItemIsSelectable
@@ -131,29 +136,30 @@ void MessageView::addMessage(const QTime& time, const QString& username, const Q
 
 	table->insertRow(row);
 
-	table->setItem(row, Index
-		, new QTableWidgetItem(
-			QString::number(row)
-			)
-		);
-	table->item(row, 0)->setFlags(flags[Index]);
+	table->setItem(row, Index, new QTableWidgetItem(QString::number(row + 1)));
+	table->item(row, Index)->setFlags(flags[Index]);
+	table->item(row, Index)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
 
-	// Set Margin...
-	QLabel* label;
-	label = new QLabel(time.toString());
-	label->setMargin(3);
-	table->setCellWidget(row, TimeSent, label);
+	table->setItem(row, TimeSent, new QTableWidgetItem(time.toString()));
+	table->item(row, TimeSent)->setFlags(flags[TimeSent]);
+	table->item(row, TimeSent)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
+
+	table->setItem(row, TimeReceived, new QTableWidgetItem(QTime::currentTime().toString()));
+	table->item(row, TimeReceived)->setFlags(flags[TimeReceived]);
+	table->item(row, TimeReceived)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
 	table->setItem(row, UserName, new QTableWidgetItem(username));
 	table->item(row, UserName)->setFlags(flags[UserName]);
+	table->item(row, UserName)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
 
 	table->setItem(row, Message, new QTableWidgetItem(message));
 	table->item(row, Message)->setFlags(flags[Message]);
+	table->item(row, Message)->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
 
 	table->resizeColumnsToContents();
 	table->resizeRowsToContents();
 
-	table->scrollToItem(table->item(row, Index));
+	table->scrollToBottom();
 
 	return;
 }

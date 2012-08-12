@@ -69,7 +69,7 @@ class QTableWidget;
  *   When the message was sent.
  * - Recieved Time [TODO]
  *   When the message was recieved.
- * - User [TODO]
+ * - User
  *   The name of the user that sent the message.
  * - Message
  *   The message that was sent.
