@@ -132,7 +132,7 @@ void MessageEntry::send()
 	QString message = line_edit->text();
 	line_edit->clear();
 
-	emit send(QTime::currentTime(), message);
+	emit send(QTime::currentTime(), getlogin(), message);
 }
 
 /**

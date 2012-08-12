@@ -92,6 +92,7 @@ class MessageEntry
 		 * \brief Send the entered message.
 		 */
 		void send(const QTime&   //!< When the message was created.
+			, const QString& //!< The Username.
 			, const QString& //!< The message.
 			);
 

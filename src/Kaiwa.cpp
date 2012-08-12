@@ -66,8 +66,8 @@ Kaiwa::Kaiwa()
 	, message_view(new MessageView())
 {
 	connect(
-		message_entry, SIGNAL(send(const QTime&, const QString&)),
-		message_view, SLOT(addMessage(const QTime&, const QString&))
+		message_entry, SIGNAL(send(const QTime&, const QString&, const QString&)),
+		message_view, SLOT(addMessage(const QTime&, const QString&, const QString&))
 		);
 
 	QVBoxLayout* layout = new QVBoxLayout();

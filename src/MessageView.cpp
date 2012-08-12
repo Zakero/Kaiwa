@@ -52,6 +52,7 @@
 enum ColumnNames
 {	Index
 ,	TimeSent
+,	UserName
 ,	Message
 ,	ColumnCount
 };
@@ -94,6 +95,9 @@ MessageView::MessageView(QWidget* parent)
 	this->table->setHorizontalHeaderItem(TimeSent
 		, new QTableWidgetItem("Sent")
 		);
+	this->table->setHorizontalHeaderItem(UserName
+		, new QTableWidgetItem("UserName")
+		);
 	this->table->setHorizontalHeaderItem(Message
 		, new QTableWidgetItem("Message")
 		);
@@ -112,11 +116,12 @@ MessageView::MessageView(QWidget* parent)
  * - is visible
  * - flags (editable, dragable, etc..able)
  */
-void MessageView::addMessage(const QTime& time, const QString& message)
+void MessageView::addMessage(const QTime& time, const QString& username, const QString& message)
 {
 	static Qt::ItemFlags flags[] =
 	{	Qt::NoItemFlags    // Index
 	,	Qt::ItemIsEnabled  // TimeSent
+	,	Qt::ItemIsEnabled  // UserName
 	,	Qt::ItemIsEnabled  // Message
 		| Qt::ItemIsSelectable
 		| Qt::ItemIsDragEnabled
@@ -138,6 +143,9 @@ void MessageView::addMessage(const QTime& time, const QString& message)
 	label = new QLabel(time.toString());
 	label->setMargin(3);
 	table->setCellWidget(row, TimeSent, label);
+
+	table->setItem(row, UserName, new QTableWidgetItem(username));
+	table->item(row, UserName)->setFlags(flags[UserName]);
 
 	table->setItem(row, Message, new QTableWidgetItem(message));
 	table->item(row, Message)->setFlags(flags[Message]);
