@@ -28,12 +28,15 @@
 // ANSI/POSIX
 
 // Qt
+#include <QHostAddress>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 // Local
 #include "Kaiwa.h"
 #include "MessageEntry.h"
 #include "MessageView.h"
+#include "Network.h"
 
 
 /******************************************************************************
@@ -64,10 +67,19 @@ Kaiwa::Kaiwa()
 	: QMainWindow()
 	, message_entry(new MessageEntry())
 	, message_view(new MessageView())
+	, network(new Network(this))
 {
 	connect(
-		message_entry, SIGNAL(send(const QTime&, const QString&, const QString&)),
-		message_view, SLOT(addMessage(const QTime&, const QString&, const QString&))
+		message_entry, SIGNAL(send(const Message&)),
+		message_view, SLOT(addMessage(const Message&))
+		);
+	connect(
+		message_entry, SIGNAL(send(const Message&)),
+		network, SLOT(sendMessage(const Message&))
+		);
+	connect(
+		network, SIGNAL(recievedMessage(const Message&)),
+		message_view, SLOT(addMessage(const Message&))
 		);
 
 	QVBoxLayout* layout = new QVBoxLayout();
@@ -78,4 +90,24 @@ Kaiwa::Kaiwa()
 	message_area->setLayout(layout);
 
 	setCentralWidget(message_area);
+
+	network->listen(QHostAddress("127.0.0.1"), 0xCAFE);
+
+	if(network->isListening() == false)
+	{
+		QPushButton* button = new QPushButton("Connect");
+		connect(button, SIGNAL(clicked()), this, SLOT(makeConnection()));
+
+		setMenuWidget(button);
+	}
+}
+
+void Kaiwa::makeConnection()
+{
+	network->connectTo(QHostAddress("127.0.0.1"), 0xCAFE);
+}
+
+QString Kaiwa::username()
+{
+	return QString(getlogin());
 }

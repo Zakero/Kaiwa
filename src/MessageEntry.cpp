@@ -35,6 +35,7 @@
 #include <QTime>
 
 // Local
+#include "Kaiwa.h"
 #include "MessageEntry.h"
 
 /******************************************************************************
@@ -129,10 +130,13 @@ void MessageEntry::send()
 
 	send_button->setEnabled(false);
 
-	QString message = line_edit->text();
+	QString text = line_edit->text();
 	line_edit->clear();
 
-	emit send(QTime::currentTime(), getlogin(), message);
+	Message message;
+	message.init(Kaiwa::username(), text);
+
+	emit send(message);
 }
 
 /**

@@ -47,6 +47,7 @@
 
 class MessageEntry;
 class MessageView;
+class Network;
 
 
 /******************************************************************************
@@ -71,8 +72,14 @@ class Kaiwa
 	public:
 		Kaiwa();
 
+		static QString username();
+
+	private slots:
+		void makeConnection();
+
 	private:
 		MessageEntry* message_entry;
 		MessageView* message_view;
+		Network* network;
 };
 #endif

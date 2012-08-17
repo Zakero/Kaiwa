@@ -17,8 +17,8 @@
  * along with Kaiwa.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGEVIEW_H
-#define MESSAGEVIEW_H
+#ifndef NETWORK_LISTENER_H_H
+#define NETWORK_LISTENER_H_H
 
 /******************************************************************************
  * Defines
@@ -31,7 +31,9 @@
 //ANSI/POSIX
 
 // Qt
-#include <QWidget>
+#include <QList>
+#include <QObject>
+#include <QtNetwork/QHostAddress>
 
 // Local
 #include "Message.h"
@@ -45,7 +47,9 @@
 /******************************************************************************
  * Forward Declarations
  */
-class QTableWidget;
+class QTcpSocket;
+class QTcpServer;
+class QTimer;
 
 
 /******************************************************************************
@@ -62,57 +66,37 @@ class QTableWidget;
  * Classes
  */
 
-/**
- * \brief A widget to display chat messages.
- *
- * Display chat messages as well as information about the messages.  This will 
- * be accomplished by using 3 columns:
- * - Sent Time
- *   When the message was sent.
- * - Recieved Time [TODO]
- *   When the message was recieved.
- * - User
- *   The name of the user that sent the message.
- * - Message
- *   The message that was sent.
- */
-class MessageView
-	: public QWidget
+class Network
+	: public QObject
 {
 	Q_OBJECT
 
 	public:
-		/**
-		 * \brief Constructor
-		 *
-		 * Create a new instance of the MessageView Widget.
-		 */
-		MessageView(QWidget* = 0 //!< The parent widget.
-			);
+		Network(QObject* = 0);
 
+		bool isListening() const;
+	
 	signals:
+		void recievedMessage(const Message&);
 
 	public slots:
-		/**
-		 * \brief Display the message.
-		 */
-		void addMessage(const Message& //!< The message.
+		void connectTo(const QHostAddress&, quint16);
+		void listen(const QHostAddress& = QHostAddress::Any //!< Address
+			, quint16 = 0 //!< Port
 			);
-
-		/**
-		 * \brief Determine how many message to hold.
-		 *
-		 * The contents of the text entry will be set to the provided 
-		 * string.  The current contents will be lost.
-		 */
-		void setHistorySize(int = 5 //!< The number messages
+		void sendMessage(const Message& //!< The message.
 			);
 
 	private slots:
+		void connectionRequest();
+		void checkConnections();
+		void readData();
 
 	private:
-		QTableWidget* table;
-		int max_rows;
+		QTimer* pending_timer;
+		QTcpServer* server_socket;
+		QList<QTcpSocket*> sockets_connected;
+		QList<QTcpSocket*> connections_pending;
 };
 
 #endif

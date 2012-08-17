@@ -17,8 +17,8 @@
  * along with Kaiwa.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGEVIEW_H
-#define MESSAGEVIEW_H
+#ifndef Message_H
+#define Message_H
 
 /******************************************************************************
  * Defines
@@ -31,10 +31,11 @@
 //ANSI/POSIX
 
 // Qt
-#include <QWidget>
+#include <QByteArray>
+#include <QDateTime>
+#include <QString>
 
 // Local
-#include "Message.h"
 
 
 /******************************************************************************
@@ -45,7 +46,6 @@
 /******************************************************************************
  * Forward Declarations
  */
-class QTableWidget;
 
 
 /******************************************************************************
@@ -61,58 +61,30 @@ class QTableWidget;
 /******************************************************************************
  * Classes
  */
-
-/**
- * \brief A widget to display chat messages.
- *
- * Display chat messages as well as information about the messages.  This will 
- * be accomplished by using 3 columns:
- * - Sent Time
- *   When the message was sent.
- * - Recieved Time [TODO]
- *   When the message was recieved.
- * - User
- *   The name of the user that sent the message.
- * - Message
- *   The message that was sent.
- */
-class MessageView
-	: public QWidget
+class Message
 {
-	Q_OBJECT
-
 	public:
-		/**
-		 * \brief Constructor
-		 *
-		 * Create a new instance of the MessageView Widget.
-		 */
-		MessageView(QWidget* = 0 //!< The parent widget.
-			);
+		Message();
+		static bool fromByteArray(QByteArray&, Message&);
 
-	signals:
+		void init(const QString&, const QString&);
+		bool isValid() const;
 
-	public slots:
-		/**
-		 * \brief Display the message.
-		 */
-		void addMessage(const Message& //!< The message.
-			);
+		const QDateTime& createdDateTime() const;
+		const QString& username() const;
+		const QString& text() const;
+		QByteArray toByteArray() const;
 
-		/**
-		 * \brief Determine how many message to hold.
-		 *
-		 * The contents of the text entry will be set to the provided 
-		 * string.  The current contents will be lost.
-		 */
-		void setHistorySize(int = 5 //!< The number messages
-			);
-
-	private slots:
+		void debug() const;
 
 	private:
-		QTableWidget* table;
-		int max_rows;
+		void init(const qint64, const QString&, const QString&);
+
+		static const char MAGIC;
+
+		QDateTime date_time;
+		QString user_name;
+		QString message;
 };
 
 #endif

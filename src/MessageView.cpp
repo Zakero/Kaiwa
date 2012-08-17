@@ -55,7 +55,7 @@ enum ColumnNames
 ,	TimeSent
 ,	TimeReceived
 ,	UserName
-,	Message
+,	MessageText
 ,	ColumnCount
 };
 
@@ -105,7 +105,7 @@ MessageView::MessageView(QWidget* parent)
 	this->table->setHorizontalHeaderItem(UserName
 		, new QTableWidgetItem("User")
 		);
-	this->table->setHorizontalHeaderItem(Message
+	this->table->setHorizontalHeaderItem(MessageText
 		, new QTableWidgetItem("Message")
 		);
 
@@ -122,14 +122,14 @@ MessageView::MessageView(QWidget* parent)
  * - flags (editable, dragable, etc..able)
  * - alignment
  */
-void MessageView::addMessage(const QTime& time, const QString& username, const QString& message)
+void MessageView::addMessage(const Message& message)
 {
 	static Qt::ItemFlags flags[] =
 	{	Qt::NoItemFlags    // Index
 	,	Qt::ItemIsEnabled  // TimeSent
 	,	Qt::ItemIsEnabled  // TimeReceived
 	,	Qt::ItemIsEnabled  // UserName
-	,	Qt::ItemIsEnabled  // Message
+	,	Qt::ItemIsEnabled  // MessageText
 		| Qt::ItemIsSelectable
 		| Qt::ItemIsDragEnabled
 	};
@@ -142,7 +142,7 @@ void MessageView::addMessage(const QTime& time, const QString& username, const Q
 	table->item(row, Index)->setFlags(flags[Index]);
 	table->item(row, Index)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
 
-	table->setItem(row, TimeSent, new QTableWidgetItem(time.toString()));
+	table->setItem(row, TimeSent, new QTableWidgetItem(message.createdDateTime().time().toString()));
 	table->item(row, TimeSent)->setFlags(flags[TimeSent]);
 	table->item(row, TimeSent)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
@@ -150,13 +150,13 @@ void MessageView::addMessage(const QTime& time, const QString& username, const Q
 	table->item(row, TimeReceived)->setFlags(flags[TimeReceived]);
 	table->item(row, TimeReceived)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-	table->setItem(row, UserName, new QTableWidgetItem(username));
+	table->setItem(row, UserName, new QTableWidgetItem(message.username()));
 	table->item(row, UserName)->setFlags(flags[UserName]);
 	table->item(row, UserName)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
 
-	table->setItem(row, Message, new QTableWidgetItem(message));
-	table->item(row, Message)->setFlags(flags[Message]);
-	table->item(row, Message)->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
+	table->setItem(row, MessageText, new QTableWidgetItem(message.text()));
+	table->item(row, MessageText)->setFlags(flags[MessageText]);
+	table->item(row, MessageText)->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
 
 	table->resizeColumnsToContents();
 	table->resizeRowsToContents();
