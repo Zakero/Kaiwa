@@ -61,30 +61,163 @@
 /******************************************************************************
  * Classes
  */
+
+/**
+ * \brief A message.
+ *
+ * A Message is a simple text message that can be sent to another Kaiwa 
+ * application.  The contents of a Message are;
+ * - When it was created.
+ * - Who created it.
+ * - The text.
+ */
 class Message
 {
 	public:
+		/**
+		 * \brief Constructor.
+		 *
+		 * Create a new instance of a Message.  The Message will be in 
+		 * an "invalid" state until it has been initialized.
+		 *
+		 * \see init()
+		 * \see isValid()
+		 */
 		Message();
-		static bool fromByteArray(QByteArray&, Message&);
 
-		void init(const QString&, const QString&);
+		/**
+		 * \name Intialization
+		 * \{
+		 */
+		/**
+		 * \brief Initialize the Message.
+		 *
+		 * Use the provided username and text to initialize this 
+		 * Message.  The current time will be used for "created" time 
+		 * stamp.
+		 *
+		 * If the Message has already been initialized, then calling 
+		 * this method will not do anything.
+		 *
+		 * \retval  true  The Message is initialized.
+		 * \retval  false  The Message was not initialized.
+		 */
+		bool init(const QString&  //!< The user name.
+			, const QString&  //!< The message text.
+			);
+
+		/**
+		 * \brief Initialize the Message.
+		 *
+		 * Use the provided QByteArray to initialize this Message.  If 
+		 * an int pointer is provided, the number of bytes that are 
+		 * read from the QByteArray will be placed in the pointer.
+		 *
+		 * If the Message has already been initialized, then calling 
+		 * this method will not do anything.
+		 *
+		 * \retval  true  The Message is initialized.
+		 * \retval  false  The Message was not initialized.
+		 *
+		 * \see toByteArray()
+		 */
+		bool init(const QByteArray&  //!< The QByteArray of data.
+			, int* = 0           //!< The number of bytes read.
+			);
+
+		/**
+		 * \}
+		 */
+
+		/**
+		 * \name Contents
+		 * \{
+		 */
+		/**
+		 * \brief The creation Date and Time.
+		 *
+		 * This method will return the Date and Time of when the 
+		 * message was initialized with data.
+		 *
+		 * \retval  The QDateTime.
+		 */
+		const QDateTime& createdDateTime() const;
+
+		/**
+		 * \brief The user that created the Message.
+		 *
+		 * \retval  The username.
+		 */
+		const QString& username() const;
+
+		/**
+		 * \brief The contents of the message.
+		 *
+		 * \retval  The message text.
+		 */
+		const QString& text() const;
+
+		/**
+		 * \}
+		 */
+
+		/**
+		 * \name State
+		 * \{
+		 */
+		/**
+		 * \brief Has this Message been initialized?
+		 *
+		 * \retval  true  The Message has been initialized.
+		 * \retval  false  The Message has not been initialized.
+		 */
 		bool isValid() const;
 
-		const QDateTime& createdDateTime() const;
-		const QString& username() const;
-		const QString& text() const;
-		QByteArray toByteArray() const;
+		/**
+		 * \}
+		 */
 
+		/**
+		 * \name Conversion
+		 * \{
+		 */
+		/**
+		 * \brief Convert to a QByteArray.
+		 *
+		 * The internal data of this Message will be appended to the 
+		 * provided QByteArray.
+		 *
+		 * \retval  The provided QByteArray.
+		 */
+		QByteArray toByteArray(QByteArray& //!< Used to store data.
+			) const;
+
+		/**
+		 * \}
+		 */
+
+		/**
+		 * \brief Dump the Message to stdout.
+		 *
+		 * The internal data of this Message will be printed to 
+		 * <code>stdout</code> in JSON format.
+		 */
 		void debug() const;
 
 	private:
-		void init(const qint64, const QString&, const QString&);
+		/**
+		 * \brief Initialize the Message.
+		 */
+		bool init(const qint64    //!< Milliseconds from Epoch.
+			, const QString&  //!< The user name.
+			, const QString&  //!< The message text.
+			);
 
-		static const char MAGIC;
+		static const char MAGIC; //!< Used for QByteArray conversion
 
-		QDateTime date_time;
-		QString user_name;
-		QString message;
+		QDateTime date_time; //!< When the message was created.
+		QString user_name;   //!< Who created the message.
+		QString message;     //!< The contents of the message.
 };
 
 #endif

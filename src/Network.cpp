@@ -153,17 +153,22 @@ void Network::readData()
 		{
 			QByteArray data = socket->readAll();
 
+			int message_len;
 			Message message;
-			Message::fromByteArray(data, message);
+			message.init(data, &message_len);
 
 			emit recievedMessage(message);
+
+			data.remove(0, message_len);
 		}
 	}
 }
 
 void Network::sendMessage(const Message& message)
 {
-	QByteArray data = message.toByteArray();
+	QByteArray data;
+
+	message.toByteArray(data);
 
 	for(int i = 0; i < sockets_connected.size(); i++)
 	{

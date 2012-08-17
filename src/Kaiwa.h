@@ -70,11 +70,22 @@ class Kaiwa
 	Q_OBJECT
 
 	public:
+		/**
+		 * \brief Constructor.
+		 */
 		Kaiwa();
 
+		/**
+		 * \brief The user name.
+		 *
+		 * \retval  The name of the user.
+		 */
 		static QString username();
 
 	private slots:
+		/**
+		 * \brief Make a network connection.
+		 */
 		void makeConnection();
 
 	private:

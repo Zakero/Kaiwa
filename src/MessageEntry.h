@@ -86,7 +86,7 @@ class MessageEntry
 		 *
 		 * Create a new instance of the MessageEntry Widget.
 		 */
-		MessageEntry(QWidget* parent = 0 //!< The parent widget.
+		MessageEntry(QWidget* = 0 //!< The parent widget.
 			);
 
 	signals:
