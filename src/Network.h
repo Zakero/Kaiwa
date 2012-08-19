@@ -33,7 +33,9 @@
 // Qt
 #include <QList>
 #include <QObject>
+#include <QTimer>
 #include <QtNetwork/QHostAddress>
+#include <QtNetwork/QTcpServer>
 
 // Local
 #include "Message.h"
@@ -48,8 +50,6 @@
  * Forward Declarations
  */
 class QTcpSocket;
-class QTcpServer;
-class QTimer;
 
 
 /******************************************************************************
@@ -81,9 +81,6 @@ class Network
 
 	public slots:
 		void connectTo(const QHostAddress&, quint16);
-		void listen(const QHostAddress& = QHostAddress::Any //!< Address
-			, quint16 = 0 //!< Port
-			);
 		void sendMessage(const Message& //!< The message.
 			);
 
@@ -93,8 +90,8 @@ class Network
 		void readData();
 
 	private:
-		QTimer* pending_timer;
-		QTcpServer* server_socket;
+		QTimer             pending_timer;
+		QTcpServer         server_socket;
 		QList<QTcpSocket*> sockets_connected;
 		QList<QTcpSocket*> connections_pending;
 };

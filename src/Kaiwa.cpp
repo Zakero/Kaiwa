@@ -96,8 +96,6 @@ Kaiwa::Kaiwa()
 
 	setCentralWidget(message_area);
 
-	network->listen(QHostAddress("127.0.0.1"), 0xCAFE);
-
 	if(network->isListening() == false)
 	{
 		QPushButton* button = new QPushButton("Connect");

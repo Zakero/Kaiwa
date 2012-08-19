@@ -30,11 +30,10 @@
 // Qt
 #include <QByteArray>
 #include <QTime>
-#include <QTimer>
-#include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 
 // Local
+#include "Kaiwa.h"
 #include "Network.h"
 
 
@@ -51,6 +50,33 @@
 /******************************************************************************
  * Functions: Private
  */
+static void setupListener(QTcpServer& socket)
+{
+	QString value;
+
+	value = Kaiwa::getSetting("Network", "Listener", "Address").toString();
+	QHostAddress host_address;
+	if(value.isNull() || value.isEmpty())
+	{
+		host_address = QHostAddress::Any;
+	}
+	else
+	{
+		host_address = QHostAddress(value);
+	}
+
+	value = Kaiwa::getSetting("Network", "Listener", "Port").toString();
+	quint16 port = value.toUInt(0, 0);
+
+	socket.listen(host_address, port);
+
+	/*
+	printf("socket: %s:%x\n"
+		, toStr(socket.serverAddress().toString())
+		, socket.serverPort()
+		);
+	*/
+}
 
 
 /******************************************************************************
@@ -64,23 +90,25 @@
 
 Network::Network(QObject* q_object)
 	: QObject(q_object)
-	, pending_timer(new QTimer(this))
-	, server_socket(new QTcpServer(this))
+	, pending_timer(this)
+	, server_socket(this)
 	, sockets_connected()
 	, connections_pending()
 {
 	// Server Socket
 	connect(
-		server_socket, SIGNAL(newConnection()),
+		&server_socket, SIGNAL(newConnection()),
 		this, SLOT(connectionRequest())
 		);
 
 	// Pending Connection Timer
 	connect(
-		pending_timer, SIGNAL(timeout()),
+		&pending_timer, SIGNAL(timeout()),
 		this, SLOT(checkConnections())
 		);
-	pending_timer->start(1000);
+	pending_timer.start(1000);
+
+	setupListener(server_socket);
 }
 
 void Network::checkConnections()
@@ -119,17 +147,13 @@ void Network::checkConnections()
 // Incoming connections
 bool Network::isListening() const
 {
-	return server_socket->isListening();
-}
-
-void Network::listen(const QHostAddress& address, quint16 port)
-{
-	server_socket->listen(address, port);
+	//return server_socket.isListening();
+	return (server_socket.serverPort() == 0xCAFE);
 }
 
 void Network::connectionRequest()
 {
-	QTcpSocket* socket = server_socket->nextPendingConnection();
+	QTcpSocket* socket = server_socket.nextPendingConnection();
 	connections_pending.append(socket);
 }
 
