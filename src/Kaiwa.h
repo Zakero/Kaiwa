@@ -32,6 +32,7 @@
 
 // Qt
 #include <QMainWindow>
+#include <QVariant>
 
 // Local
 
@@ -59,6 +60,12 @@ class Network;
  * Structures
  */
 
+/**
+ * \deprecated
+ * This function is for debugging purposes only.
+ */
+const char* toStr(const QString& //!< The QString to convert.
+	);
 
 /******************************************************************************
  * Classes
@@ -81,6 +88,21 @@ class Kaiwa
 		 * \retval  The name of the user.
 		 */
 		static QString username();
+
+		/**
+		 * \brief Get the requested settings.
+		 *
+		 * The Kaiwa application settings will be checked for the 
+		 * requested values.  If the Section, Group, Key is not found, 
+		 * then the provided default value is returned.  If the value 
+		 * was found in the "temporary" settings, then that value will 
+		 * be removed.
+		 */
+		static QVariant getSetting(const QString& //!< Section
+			, const QString&                  //!< Group
+			, const QString&                  //!< Key
+			, const QVariant& = QVariant()    //!< Default Value
+			);
 
 	private slots:
 		/**

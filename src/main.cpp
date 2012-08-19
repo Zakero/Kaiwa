@@ -26,9 +26,14 @@
  * Includes
  */
 // ANSI/POSIX
+#include <stdio.h>
+#include <string.h>
 
 // Qt
 #include <QApplication>
+#include <QSettings>
+#include <QString>
+#include <QStringList>
 
 // Local
 #include "Kaiwa.h"
@@ -42,15 +47,126 @@
 /******************************************************************************
  * Functions: Public
  */
+static void parseArgs();
 
+/**
+ * \brief The main().
+ *
+ * This function will start the Kaiwa application.
+ */
 int main(int arc, char** argv)
 {
 	QApplication app(arc, argv);
+	parseArgs();
 	
 	Kaiwa kaiwa;
 	kaiwa.show();
 
 	return app.exec();
+}
+
+/**
+ * \brief Parse the command-line arguments.
+ *
+ * The command-line args will be parsed and the values will be placed in 
+ * "temporary" settings.
+ */
+void parseArgs()
+{
+	/**
+	 * \internal
+	 * This structure is used to hold all the valid command line args as 
+	 * well as the associated QSettings group/key values.
+	 */
+	struct
+	{	const char* name;
+		const bool  requires_value;
+		const char* section;
+		const char* group;
+		const char* key;
+	} param[] = // name                    reqv  section    group       key
+	{	{ "-network-listener-address", true, "Network", "Listener", "Address" }
+	,	{ "-network-listener-port",    true, "Network", "Listener", "Port"    }
+	,	{ NULL, false, NULL, NULL, NULL },
+	};
+
+	// Remove any previous settings
+	for(int i = 0; param[i].name != NULL; i++)
+	{
+		QSettings settings("Kaiwa", param[i].section);
+		settings.clear();
+	}
+
+	// Get the args
+	QStringList arg_list = qApp->arguments();
+	for(int arg_index = 0; arg_index < arg_list.size(); arg_index++)
+	{
+		// If the arg is prefixed with "--" remove one of the "-"
+		QString temp(arg_list.at(arg_index));
+		if(temp.startsWith("--"))
+		{
+			temp.remove(0, 1);
+		}
+
+		// Split the arg into name and value
+		QStringList key_value = temp.split('=');
+		QString arg_name = key_value.at(0);
+		QString arg_value = key_value.value(1);
+
+		// Reassemble the value in-case it contained any ='s
+		for(int i = 2; i < key_value.size(); i++)
+		{
+			arg_value.append("=").append(key_value.at(i));
+		}
+
+		for(int i = 0; param[i].name != NULL; i++)
+		{
+			if(arg_name == param[i].name)
+			{
+				// Found a valid argument, open the settings
+				QSettings settings("Kaiwa", param[i].section);
+
+				// Start the group
+				if(param[i].group)
+				{
+					settings.beginGroup(param[i].group);
+				}
+
+				// Save the value in to the settings
+				if(param[i].requires_value)
+				{
+					if(arg_value.isEmpty() || arg_value.isNull())
+					{
+						if((arg_index + 1) >= arg_list.size())
+						{
+							fprintf(stderr
+								, "Parameter \"%s\" missing value\n"
+								, param[i].name
+								);
+							exit(-1);
+						}
+
+						arg_index++;
+						arg_value = arg_list.at(arg_index);
+					}
+
+					settings.setValue(param[i].key, arg_value);
+				}
+				else
+				{
+					settings.setValue(param[i].key, QVariant());
+				}
+
+				// Done with the group
+				if(param[i].group)
+				{
+					settings.endGroup();
+				}
+
+				// settings goes out of scope and closes.
+			}
+		}
+	}
 }
 
 

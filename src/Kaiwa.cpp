@@ -30,6 +30,7 @@
 // Qt
 #include <QHostAddress>
 #include <QPushButton>
+#include <QSettings>
 #include <QVBoxLayout>
 
 // Local
@@ -47,6 +48,10 @@
 /******************************************************************************
  * Functions: Public
  */
+const char* toStr(const QString& q_string)
+{
+	return q_string.toStdString().c_str();
+}
 
 
 /******************************************************************************
@@ -105,6 +110,19 @@ Kaiwa::Kaiwa()
 void Kaiwa::makeConnection()
 {
 	network->connectTo(QHostAddress("127.0.0.1"), 0xCAFE);
+}
+
+QVariant Kaiwa::getSetting(const QString& section, const QString& group, const QString& key, const QVariant& default_value)
+{
+	QSettings settings("Kaiwa", section);
+
+	settings.beginGroup(group);
+
+	QVariant value = settings.value(key, default_value);
+
+	settings.endGroup();
+
+	return value;
 }
 
 QString Kaiwa::username()
