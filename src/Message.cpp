@@ -65,7 +65,7 @@ const char Message::MAGIC = 1;
  * consistency.
  * 
  * The user_name and message could be passed to the constructor and the 
- * date_time could be set with out any problems.  However, passing a QByteArray 
+ * created could be set with out any problems.  However, passing a QByteArray 
  * would be problematic because what happens if the QByteArray is not valid?  
  * What happens to the Message, because it is now in an unknown state.
  *
@@ -73,7 +73,8 @@ const char Message::MAGIC = 1;
  * problem becomes an non-issue.
  */
 Message::Message()
-	: date_time()
+	: created()
+	, received()
 	, user_name()
 	, message()
 {
@@ -154,8 +155,9 @@ bool Message::init(const QByteArray& byte_array, int* bytes_read)
 		*bytes_read = len;
 	}
 
-	return init(msecs, user_name, text);
+	received.setMSecsSinceEpoch(QDateTime::currentMSecsSinceEpoch());
 
+	return init(msecs, user_name, text);
 }
 
 /**
@@ -169,7 +171,7 @@ bool Message::init(const QByteArray& byte_array, int* bytes_read)
  */
 bool Message::init(const qint64 msecs, const QString& user, const QString& text)
 {
-	date_time.setMSecsSinceEpoch(msecs);
+	created.setMSecsSinceEpoch(msecs);
 
 	user_name.clear();
 	user_name.append(user);
@@ -187,7 +189,7 @@ bool Message::init(const qint64 msecs, const QString& user, const QString& text)
  */
 bool Message::isValid() const
 {
-	return date_time.isValid();
+	return created.isValid();
 }
 
 /**
@@ -197,7 +199,19 @@ bool Message::isValid() const
  */
 const QDateTime& Message::createdDateTime() const
 {
-	return date_time;
+	return created;
+}
+
+/**
+ * \internal
+ * "Received" actually means when the Message was initialized from a 
+ * QByteArray.
+ * 
+ * \see init(const QByteArray&, int*)
+ */
+const QDateTime& Message::receivedDateTime() const
+{
+	return received;
 }
 
 /**
@@ -244,7 +258,7 @@ QByteArray Message::toByteArray(QByteArray& byte_array) const
 {
 	byte_array.append(Message::MAGIC);
 	qint64 mask = 0x00ff;
-	qint64 msecs = date_time.toMSecsSinceEpoch();
+	qint64 msecs = created.toMSecsSinceEpoch();
 	for(unsigned int i = 0; i < sizeof(qint64); i++)
 	{
 		int s = i * 8;
@@ -265,7 +279,7 @@ QByteArray Message::toByteArray(QByteArray& byte_array) const
 void Message::debug() const
 {
 	printf("%d Message\n{\n", getpid());
-	printf("\tDateTime: %s\n", date_time.toString().toStdString().c_str());
+	printf("\tCreated: %s\n", created.toString().toStdString().c_str());
 	printf("\tUserName: %s\n", user_name.toStdString().c_str());
 	printf("\tText: %s\n", message.toStdString().c_str());
 	printf("}\n");

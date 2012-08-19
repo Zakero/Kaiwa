@@ -113,8 +113,12 @@ class Message
 		 * an int pointer is provided, the number of bytes that are 
 		 * read from the QByteArray will be placed in the pointer.
 		 *
+		 * Reconstructing a Message from a QByteArray will set the 
+		 * received time stamp as well.
+		 *
 		 * If the Message has already been initialized, then calling 
-		 * this method will not do anything.
+		 * this method will not do anything.  Also, if the QByteArray 
+		 * is not properly formatted, this method will not do anything.
 		 *
 		 * \retval  true  The Message is initialized.
 		 * \retval  false  The Message was not initialized.
@@ -139,24 +143,34 @@ class Message
 		 * This method will return the Date and Time of when the 
 		 * message was initialized with data.
 		 *
-		 * \retval  The QDateTime.
+		 * \return  The QDateTime.
 		 */
 		const QDateTime& createdDateTime() const;
 
 		/**
 		 * \brief The user that created the Message.
 		 *
-		 * \retval  The username.
+		 * \return  The username.
 		 */
 		const QString& username() const;
 
 		/**
 		 * \brief The contents of the message.
 		 *
-		 * \retval  The message text.
+		 * \return  The message text.
 		 */
 		const QString& text() const;
 
+		/**
+		 * \brief The received Date and Time.
+		 *
+		 * This method will return the Date and Time of when the 
+		 * message was received.  If the message has not been received 
+		 * then an invalid QDateTime object will be returned.
+		 *
+		 * \return The QDateTime.
+		 */
+		const QDateTime& receivedDateTime() const;
 		/**
 		 * \}
 		 */
@@ -215,9 +229,10 @@ class Message
 
 		static const char MAGIC; //!< Used for QByteArray conversion
 
-		QDateTime date_time; //!< When the message was created.
-		QString user_name;   //!< Who created the message.
-		QString message;     //!< The contents of the message.
+		QDateTime created;  //!< When the message was created.
+		QDateTime received; //!< When the message was created.
+		QString user_name;  //!< Who created the message.
+		QString message;    //!< The contents of the message.
 };
 
 #endif

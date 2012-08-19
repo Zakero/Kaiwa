@@ -146,7 +146,7 @@ void MessageView::addMessage(const Message& message)
 	table->item(row, TimeSent)->setFlags(flags[TimeSent]);
 	table->item(row, TimeSent)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-	table->setItem(row, TimeReceived, new QTableWidgetItem(QTime::currentTime().toString()));
+	table->setItem(row, TimeReceived, new QTableWidgetItem(message.receivedDateTime().time().toString()));
 	table->item(row, TimeReceived)->setFlags(flags[TimeReceived]);
 	table->item(row, TimeReceived)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
