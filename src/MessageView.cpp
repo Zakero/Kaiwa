@@ -34,7 +34,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QString>
-#include <QTableWidget>
+//#include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QTime>
 
@@ -84,34 +84,34 @@ enum ColumnNames
  */
 MessageView::MessageView(QWidget* parent)
 	: QWidget(parent)
-	, table(new QTableWidget())
+	, table()
 	, max_rows(5)
 {
-	this->table->setColumnCount(ColumnCount);
-	this->table->verticalHeader()->setVisible(false);
-	this->table->resizeColumnsToContents();
-	this->table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-	this->table->setShowGrid(false);
+	table.setColumnCount(ColumnCount);
+	table.verticalHeader()->setVisible(false);
+	table.resizeColumnsToContents();
+	table.setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+	table.setShowGrid(false);
 
-	this->table->setHorizontalHeaderItem(Index
+	table.setHorizontalHeaderItem(Index
 		, new QTableWidgetItem("#")
 		);
-	this->table->setHorizontalHeaderItem(TimeSent
+	table.setHorizontalHeaderItem(TimeSent
 		, new QTableWidgetItem("Time Sent")
 		);
-	this->table->setHorizontalHeaderItem(TimeReceived
+	table.setHorizontalHeaderItem(TimeReceived
 		, new QTableWidgetItem("Time Received")
 		);
-	this->table->setHorizontalHeaderItem(UserName
+	table.setHorizontalHeaderItem(UserName
 		, new QTableWidgetItem("User")
 		);
-	this->table->setHorizontalHeaderItem(MessageText
+	table.setHorizontalHeaderItem(MessageText
 		, new QTableWidgetItem("Message")
 		);
 
 	QHBoxLayout* layout = new QHBoxLayout();
-	layout->addWidget(this->table);
-	this->setLayout(layout);
+	layout->addWidget(&table);
+	setLayout(layout);
 }
 
 /**
@@ -134,34 +134,34 @@ void MessageView::addMessage(const Message& message)
 		| Qt::ItemIsDragEnabled
 	};
 
-	int row = table->rowCount();
+	int row = table.rowCount();
 
-	table->insertRow(row);
+	table.insertRow(row);
 
-	table->setItem(row, Index, new QTableWidgetItem(QString::number(row + 1)));
-	table->item(row, Index)->setFlags(flags[Index]);
-	table->item(row, Index)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
+	table.setItem(row, Index, new QTableWidgetItem(QString::number(row + 1)));
+	table.item(row, Index)->setFlags(flags[Index]);
+	table.item(row, Index)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
 
-	table->setItem(row, TimeSent, new QTableWidgetItem(message.createdDateTime().time().toString()));
-	table->item(row, TimeSent)->setFlags(flags[TimeSent]);
-	table->item(row, TimeSent)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
+	table.setItem(row, TimeSent, new QTableWidgetItem(message.createdDateTime().time().toString()));
+	table.item(row, TimeSent)->setFlags(flags[TimeSent]);
+	table.item(row, TimeSent)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-	table->setItem(row, TimeReceived, new QTableWidgetItem(message.receivedDateTime().time().toString()));
-	table->item(row, TimeReceived)->setFlags(flags[TimeReceived]);
-	table->item(row, TimeReceived)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
+	table.setItem(row, TimeReceived, new QTableWidgetItem(message.receivedDateTime().time().toString()));
+	table.item(row, TimeReceived)->setFlags(flags[TimeReceived]);
+	table.item(row, TimeReceived)->setTextAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-	table->setItem(row, UserName, new QTableWidgetItem(message.username()));
-	table->item(row, UserName)->setFlags(flags[UserName]);
-	table->item(row, UserName)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
+	table.setItem(row, UserName, new QTableWidgetItem(message.username()));
+	table.item(row, UserName)->setFlags(flags[UserName]);
+	table.item(row, UserName)->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
 
-	table->setItem(row, MessageText, new QTableWidgetItem(message.text()));
-	table->item(row, MessageText)->setFlags(flags[MessageText]);
-	table->item(row, MessageText)->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
+	table.setItem(row, MessageText, new QTableWidgetItem(message.text()));
+	table.item(row, MessageText)->setFlags(flags[MessageText]);
+	table.item(row, MessageText)->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
 
-	table->resizeColumnsToContents();
-	table->resizeRowsToContents();
+	table.resizeColumnsToContents();
+	table.resizeRowsToContents();
 
-	table->scrollToBottom();
+	table.scrollToBottom();
 
 	return;
 }

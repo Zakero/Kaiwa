@@ -35,6 +35,7 @@
 #include <QVariant>
 
 // Local
+#include "Network.h"
 
 
 /******************************************************************************
@@ -48,7 +49,6 @@
 
 class MessageEntry;
 class MessageView;
-class Network;
 
 
 /******************************************************************************
@@ -113,6 +113,6 @@ class Kaiwa
 	private:
 		MessageEntry* message_entry;
 		MessageView* message_view;
-		Network* network;
+		Network network;
 };
 #endif

@@ -33,6 +33,9 @@
 #include <QSettings>
 #include <QVBoxLayout>
 
+#include <QTabWidget>
+#include <QToolBox>
+
 // Local
 #include "Kaiwa.h"
 #include "MessageEntry.h"
@@ -72,21 +75,51 @@ Kaiwa::Kaiwa()
 	: QMainWindow()
 	, message_entry(new MessageEntry())
 	, message_view(new MessageView())
-	, network(new Network(this))
+	, network(this)
 {
+	QToolBox* tool_box = new QToolBox();
+
+	QVBoxLayout* layout = new QVBoxLayout();
+	layout->addWidget(message_view, 1);
+	layout->addWidget(message_entry);
+
+	QWidget* message_area = new QWidget();
+	message_area->setLayout(layout);
+	/*
+	QTabWidget* channels = new QTabWidget();
+	channels->setTabPosition(QTabWidget::West);
+	channels->setTabShape(QTabWidget::Triangular);
+	channels->addTab(message_area,  "Foo");
+	channels->addTab(new QWidget(), "Bar");
+	channels->addTab(new QWidget(), "Blah");
+	tool_box->addItem(channels, "Channels");
+	*/
+	tool_box->addItem(message_area, "Messages");
+
+	QTabWidget* settings = new QTabWidget();
+	settings->setTabPosition(QTabWidget::West);
+	//settings->setTabShape(QTabWidget::Triangular);
+	//settings->addTab(new QWidget(), "User");
+	settings->addTab(network.settings(), "Network");
+	//settings->addTab(new QWidget(), "Bots");
+	//settings->addTab(new QWidget(), "About");
+	tool_box->addItem(settings, "Settings");
+	setCentralWidget(tool_box);
+
 	connect(
 		message_entry, SIGNAL(send(const Message&)),
 		message_view, SLOT(addMessage(const Message&))
 		);
 	connect(
 		message_entry, SIGNAL(send(const Message&)),
-		network, SLOT(sendMessage(const Message&))
+		&network, SLOT(sendMessage(const Message&))
 		);
 	connect(
-		network, SIGNAL(recievedMessage(const Message&)),
+		&network, SIGNAL(recievedMessage(const Message&)),
 		message_view, SLOT(addMessage(const Message&))
 		);
 
+	/*
 	QVBoxLayout* layout = new QVBoxLayout();
 	layout->addWidget(message_view, 1);
 	layout->addWidget(message_entry);
@@ -103,11 +136,12 @@ Kaiwa::Kaiwa()
 
 		setMenuWidget(button);
 	}
+	*/
 }
 
 void Kaiwa::makeConnection()
 {
-	network->connectTo(QHostAddress("127.0.0.1"), 0xCAFE);
+	network.connectTo(QHostAddress("127.0.0.1"), 0xCAFE);
 }
 
 QVariant Kaiwa::getSetting(const QString& section, const QString& group, const QString& key, const QVariant& default_value)

@@ -34,8 +34,11 @@
 #include <QList>
 #include <QObject>
 #include <QTimer>
+#include <QTabWidget>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QTcpServer>
+
+#include <QString>
 
 // Local
 #include "Message.h"
@@ -49,6 +52,7 @@
 /******************************************************************************
  * Forward Declarations
  */
+class QLineEdit;
 class QTcpSocket;
 
 
@@ -75,6 +79,7 @@ class Network
 		Network(QObject* = 0);
 
 		bool isListening() const;
+		QWidget* settings();
 	
 	signals:
 		void recievedMessage(const Message&);
@@ -89,11 +94,19 @@ class Network
 		void checkConnections();
 		void readData();
 
+		void verifyAddress(const QString&);
+
 	private:
+		void initSettings();
+		QWidget* initSettingsListener();
+
 		QTimer             pending_timer;
 		QTcpServer         server_socket;
+		QTabWidget         settings_widget;
+		QLineEdit*         addr_line_edit;
 		QList<QTcpSocket*> sockets_connected;
 		QList<QTcpSocket*> connections_pending;
+		quint16            listener_port;
 };
 
 #endif

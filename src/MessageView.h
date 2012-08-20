@@ -31,6 +31,7 @@
 //ANSI/POSIX
 
 // Qt
+#include <QTableWidget>
 #include <QWidget>
 
 // Local
@@ -45,7 +46,7 @@
 /******************************************************************************
  * Forward Declarations
  */
-class QTableWidget;
+//class QTableWidget;
 
 
 /******************************************************************************
@@ -111,7 +112,7 @@ class MessageView
 	private slots:
 
 	private:
-		QTableWidget* table;
+		QTableWidget table;
 		int max_rows;
 };
 
