@@ -45,25 +45,8 @@
 
 
 /******************************************************************************
- * Functions: Public
+ * Functions: Private
  */
-static void parseArgs();
-
-/**
- * \brief The main().
- *
- * This function will start the Kaiwa application.
- */
-int main(int arc, char** argv)
-{
-	QApplication app(arc, argv);
-	parseArgs();
-	
-	Kaiwa kaiwa;
-	kaiwa.show();
-
-	return app.exec();
-}
 
 /**
  * \brief Parse the command-line arguments.
@@ -71,7 +54,7 @@ int main(int arc, char** argv)
  * The command-line args will be parsed and the values will be placed in 
  * "temporary" settings.
  */
-void parseArgs()
+static void parseArgs()
 {
 	/**
 	 * \internal
@@ -91,11 +74,7 @@ void parseArgs()
 	};
 
 	// Remove any previous settings
-	for(int i = 0; param[i].name != NULL; i++)
-	{
-		QSettings settings("Kaiwa", param[i].section);
-		settings.clear();
-	}
+	Kaiwa::clearCommandLineValues();
 
 	// Get the args
 	QStringList arg_list = qApp->arguments();
@@ -121,49 +100,42 @@ void parseArgs()
 
 		for(int i = 0; param[i].name != NULL; i++)
 		{
-			if(arg_name == param[i].name)
+			if(arg_name != param[i].name)
 			{
-				// Found a valid argument, open the settings
-				QSettings settings("Kaiwa", param[i].section);
+				continue;
+			}
 
-				// Start the group
-				if(param[i].group)
+			// Save the value in to the settings
+			if(param[i].requires_value)
+			{
+				if(arg_value.isEmpty() || arg_value.isNull())
 				{
-					settings.beginGroup(param[i].group);
-				}
-
-				// Save the value in to the settings
-				if(param[i].requires_value)
-				{
-					if(arg_value.isEmpty() || arg_value.isNull())
+					if((arg_index + 1) >= arg_list.size())
 					{
-						if((arg_index + 1) >= arg_list.size())
-						{
-							fprintf(stderr
-								, "Parameter \"%s\" missing value\n"
-								, param[i].name
-								);
-							exit(-1);
-						}
-
-						arg_index++;
-						arg_value = arg_list.at(arg_index);
+						fprintf(stderr
+							, "Parameter \"%s\" missing value\n"
+							, param[i].name
+							);
+						exit(-1);
 					}
 
-					settings.setValue(param[i].key, arg_value);
-				}
-				else
-				{
-					settings.setValue(param[i].key, QVariant());
+					arg_index++;
+					arg_value = arg_list.at(arg_index);
 				}
 
-				// Done with the group
-				if(param[i].group)
-				{
-					settings.endGroup();
-				}
-
-				// settings goes out of scope and closes.
+				Kaiwa::putCommandLineValue(param[i].section
+					, param[i].group
+					, param[i].key
+					, arg_value
+					);
+			}
+			else
+			{
+				Kaiwa::putCommandLineValue(param[i].section
+					, param[i].group
+					, param[i].key
+					, QVariant()
+					);
 			}
 		}
 	}
@@ -171,6 +143,21 @@ void parseArgs()
 
 
 /******************************************************************************
- * Functions: Private
+ * Functions: Public
  */
 
+/**
+ * \brief The main().
+ *
+ * This function will start the Kaiwa application.
+ */
+int main(int arc, char** argv)
+{
+	QApplication app(arc, argv);
+	parseArgs();
+	
+	Kaiwa kaiwa;
+	kaiwa.show();
+
+	return app.exec();
+}

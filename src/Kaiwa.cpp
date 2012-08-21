@@ -31,10 +31,9 @@
 #include <QHostAddress>
 #include <QPushButton>
 #include <QSettings>
-#include <QVBoxLayout>
-
 #include <QTabWidget>
 #include <QToolBox>
+#include <QVBoxLayout>
 
 // Local
 #include "Kaiwa.h"
@@ -71,8 +70,8 @@ const char* toStr(const QString& q_string)
  * Class Methods: Kaiwa
  */
 
-Kaiwa::Kaiwa()
-	: QMainWindow()
+Kaiwa::Kaiwa(QWidget* parent)
+	: QMainWindow(parent)
 	, message_entry(new MessageEntry())
 	, message_view(new MessageView())
 	, network(this)
@@ -144,20 +143,117 @@ void Kaiwa::makeConnection()
 	network.connectTo(QHostAddress("127.0.0.1"), 0xCAFE);
 }
 
-QVariant Kaiwa::getSetting(const QString& section, const QString& group, const QString& key, const QVariant& default_value)
+QString Kaiwa::username()
 {
-	QSettings settings("Kaiwa", section);
+	return QString(getlogin());
+}
 
+/******************************************************************************
+ * Application Values
+ */
+
+/**
+ * \internal
+ *
+ */
+QVariant Kaiwa::getValue(const QString& section, const QString& group, const QString& key, const QVariant& default_value)
+{
+	QSettings settings("Kaiwa");
+
+	settings.beginGroup(section);
 	settings.beginGroup(group);
 
 	QVariant value = settings.value(key, default_value);
 
 	settings.endGroup();
+	settings.endGroup();
 
 	return value;
 }
 
-QString Kaiwa::username()
+/**
+ * \internal
+ *
+ */
+void Kaiwa::putValue(const QString& section, const QString& group, const QString& key, const QVariant& value)
 {
-	return QString(getlogin());
+	QSettings settings("Kaiwa");
+
+	settings.beginGroup(section);
+	settings.beginGroup(group);
+
+	settings.setValue(key, value);
+
+	settings.endGroup();
+	settings.endGroup();
+}
+
+/**
+ * \internal
+ *
+ */
+void Kaiwa::removeValue(const QString& section, const QString& group, const QString& key)
+{
+	QSettings settings("Kaiwa");
+
+	settings.beginGroup(section);
+	settings.beginGroup(group);
+
+	settings.remove(key);
+
+	settings.endGroup();
+	settings.endGroup();
+}
+
+/**
+ * \internal
+ *
+ */
+void Kaiwa::clearCommandLineValues()
+{
+	QSettings settings("Kaiwa");
+
+	settings.beginGroup("Command-Line");
+	settings.remove("");
+	settings.endGroup();
+}
+
+/**
+ * \internal
+ *
+ */
+QVariant Kaiwa::getCommandLineValue(const QString& section, const QString& group, const QString& key, const QVariant& default_value)
+{
+	QSettings settings("Kaiwa");
+
+	settings.beginGroup("Command-Line");
+	settings.beginGroup(section);
+	settings.beginGroup(group);
+
+	QVariant value = settings.value(key, default_value);
+
+	settings.endGroup();
+	settings.endGroup();
+	settings.endGroup();
+
+	return value;
+}
+
+/**
+ * \internal
+ *
+ */
+void Kaiwa::putCommandLineValue(const QString& section, const QString& group, const QString& key, const QVariant& value)
+{
+	QSettings settings("Kaiwa");
+
+	settings.beginGroup("Command-Line");
+	settings.beginGroup(section);
+	settings.beginGroup(group);
+
+	settings.setValue(key, value);
+
+	settings.endGroup();
+	settings.endGroup();
+	settings.endGroup();
 }

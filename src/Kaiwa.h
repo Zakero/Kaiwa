@@ -80,7 +80,8 @@ class Kaiwa
 		/**
 		 * \brief Constructor.
 		 */
-		Kaiwa();
+		Kaiwa(QWidget* = 0 //!< The Parent Widget
+			);
 
 		/**
 		 * \brief The user name.
@@ -90,23 +91,86 @@ class Kaiwa
 		static QString username();
 
 		/**
-		 * \brief Get the requested settings.
+		 * \name Managed Values
+		 * \{
+		 */
+		/**
+		 * \brief Get a value.
 		 *
 		 * The Kaiwa application settings will be checked for the 
 		 * requested values.  If the Section, Group, Key is not found, 
-		 * then the provided default value is returned.  If the value 
-		 * was found in the "temporary" settings, then that value will 
-		 * be removed.
+		 * then the provided default value is returned.
+		 *
+		 * \return The value.
 		 */
-		static QVariant getSetting(const QString& //!< Section
-			, const QString&                  //!< Group
-			, const QString&                  //!< Key
-			, const QVariant& = QVariant()    //!< Default Value
+		static QVariant getValue(const QString& //!< Section
+			, const QString&                //!< Group
+			, const QString&                //!< Key
+			, const QVariant& = QVariant()  //!< Default Value
 			);
+
+		/**
+		 * \brief Save a value.
+		 */
+		static void putValue(const QString& //!< Section
+			, const QString&            //!< Group
+			, const QString&            //!< Key
+			, const QVariant&           //!< Value
+			);
+
+		/**
+		 * \brief Remove a value.
+		 */
+		static void removeValue(const QString& //!< Section
+			, const QString&               //!< Group
+			, const QString&               //!< Key
+			);
+
+		/**
+		 * \name Command-Line Values
+		 * \{
+		 */
+		/**
+		 * \brief Remove all Command-Line Values.
+		 */
+		static void clearCommandLineValues();
+
+		/**
+		 * \brief Get a value.
+		 *
+		 * The Kaiwa application settings will be checked for the 
+		 * requested Command-Line values.  If the Section, Group, Key 
+		 * is not found, then the provided default value is returned.
+		 *
+		 * \return The value.
+		 */
+		static QVariant getCommandLineValue(const QString& //!< Section
+			, const QString&                           //!< Group
+			, const QString&                           //!< Key
+			, const QVariant& = QVariant()             //!< Default Value
+			);
+
+		/**
+		 * \brief Save a value.
+		 *
+		 * The provided value will be saved in the Kaiwa application 
+		 * settings as a Command-Line value.
+		 */
+		static void putCommandLineValue(const QString& //!< Section
+			, const QString&                       //!< Group
+			, const QString&                       //!< Key
+			, const QVariant&                      //!< Value
+			);
+		/**
+		 * \}
+		 */
+		/**
+		 * \}
+		 */
 
 	private slots:
 		/**
-		 * \brief Make a network connection.
+		 * \deprecated
 		 */
 		void makeConnection();
 

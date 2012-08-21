@@ -52,7 +52,10 @@
 /******************************************************************************
  * Forward Declarations
  */
+class QButtonGroup;
 class QLineEdit;
+class QPushButton;
+class QSlider;
 class QTcpSocket;
 
 
@@ -76,34 +79,69 @@ class Network
 	Q_OBJECT
 
 	public:
-		Network(QObject* = 0);
+		/**
+		 * \brief Constructor
+		 */
+		Network(QObject* = 0 //!< The Parent Object
+			);
 
-		bool isListening() const;
+		/**
+		 * \brief The settings interface.
+		 *
+		 * The widget the provides all the controls to manage this 
+		 * object will be return by this method.
+		 *
+		 * \return The widget.
+		 */
 		QWidget* settings();
+
+		/**
+		 * \deprecated
+		 */
+		bool isListening() const;
 	
 	signals:
-		void recievedMessage(const Message&);
+		/**
+		 * \brief A Message has been recieved.
+		 */
+		void recievedMessage(const Message& //!< The message.
+			);
 
 	public slots:
+		/**
+		 * \deprecated
+		 */
 		void connectTo(const QHostAddress&, quint16);
+
+		/**
+		 * \brief Send a Message.
+		 */
 		void sendMessage(const Message& //!< The message.
 			);
 
 	private slots:
-		void connectionRequest();
 		void checkConnections();
+		void connectionRequest();
 		void readData();
 
-		void verifyAddress(const QString&);
+		void settingsListenerVerifyAddress(const QString&);
+		void settingsListenerUpdateButtons();
+		void settingsListenerSetDefaults();
+		void settingsListenerUseNow();
 
 	private:
+		void initListener(QHostAddress* = 0, quint16* = 0);
 		void initSettings();
 		QWidget* initSettingsListener();
 
 		QTimer             pending_timer;
 		QTcpServer         server_socket;
 		QTabWidget         settings_widget;
-		QLineEdit*         addr_line_edit;
+		QButtonGroup*      settings_listener_addr_type;
+		QLineEdit*         settings_listener_address;
+		QSlider*           settings_listener_port;
+		QPushButton*       settings_listener_set_default;
+		QPushButton*       settings_listener_use_now;
 		QList<QTcpSocket*> sockets_connected;
 		QList<QTcpSocket*> connections_pending;
 		quint16            listener_port;
