@@ -169,10 +169,6 @@ class Kaiwa
 		 */
 
 	private slots:
-		/**
-		 * \deprecated
-		 */
-		void makeConnection();
 
 	private:
 		MessageEntry* message_entry;

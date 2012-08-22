@@ -117,30 +117,6 @@ Kaiwa::Kaiwa(QWidget* parent)
 		&network, SIGNAL(recievedMessage(const Message&)),
 		message_view, SLOT(addMessage(const Message&))
 		);
-
-	/*
-	QVBoxLayout* layout = new QVBoxLayout();
-	layout->addWidget(message_view, 1);
-	layout->addWidget(message_entry);
-
-	QWidget* message_area = new QWidget();
-	message_area->setLayout(layout);
-
-	setCentralWidget(message_area);
-
-	if(network->isListening() == false)
-	{
-		QPushButton* button = new QPushButton("Connect");
-		connect(button, SIGNAL(clicked()), this, SLOT(makeConnection()));
-
-		setMenuWidget(button);
-	}
-	*/
-}
-
-void Kaiwa::makeConnection()
-{
-	network.connectTo(QHostAddress("127.0.0.1"), 0xCAFE);
 }
 
 QString Kaiwa::username()

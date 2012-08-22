@@ -54,9 +54,12 @@
  */
 class QButtonGroup;
 class QLineEdit;
+class QListWidget;
 class QPushButton;
-class QSlider;
+class QSpinBox;
 class QTcpSocket;
+class QVBoxLayout;
+class QGridLayout;
 
 
 /******************************************************************************
@@ -94,11 +97,6 @@ class Network
 		 * \return The widget.
 		 */
 		QWidget* settings();
-
-		/**
-		 * \deprecated
-		 */
-		bool isListening() const;
 	
 	signals:
 		/**
@@ -108,11 +106,6 @@ class Network
 			);
 
 	public slots:
-		/**
-		 * \deprecated
-		 */
-		void connectTo(const QHostAddress&, quint16);
-
 		/**
 		 * \brief Send a Message.
 		 */
@@ -124,6 +117,10 @@ class Network
 		void connectionRequest();
 		void readData();
 
+		void settingsConnectionClearHost();
+		void settingsConnectionEstablish();
+		void settingsConnectionVerifyAddress(const QString&);
+
 		void settingsListenerVerifyAddress(const QString&);
 		void settingsListenerUpdateButtons();
 		void settingsListenerSetDefaults();
@@ -132,14 +129,19 @@ class Network
 	private:
 		void initListener(QHostAddress* = 0, quint16* = 0);
 		void initSettings();
+		QWidget* initSettingsConnections();
 		QWidget* initSettingsListener();
 
 		QTimer             pending_timer;
 		QTcpServer         server_socket;
 		QTabWidget         settings_widget;
+		QLineEdit*         settings_connection_address;
+		QListWidget*       settings_connection_list;
+		QPushButton*       settings_connection_new;
+		QSpinBox*          settings_connection_port;
 		QButtonGroup*      settings_listener_addr_type;
 		QLineEdit*         settings_listener_address;
-		QSlider*           settings_listener_port;
+		QSpinBox*          settings_listener_port;
 		QPushButton*       settings_listener_set_default;
 		QPushButton*       settings_listener_use_now;
 		QList<QTcpSocket*> sockets_connected;

@@ -28,21 +28,23 @@
 // ANSI/POSIX
 
 // Qt
-#include <QByteArray>
-#include <QTime>
-#include <QtNetwork/QTcpSocket>
-
-#include <QGroupBox>
-#include <QRadioButton>
-#include <QLineEdit>
-#include <QVBoxLayout>
-#include <QSlider>
-#include <QPushButton>
-#include <QHBoxLayout>
-#include <QGridLayout>
-#include <QSpinBox>
-#include <QGraphicsColorizeEffect>
 #include <QButtonGroup>
+#include <QByteArray>
+#include <QColor>
+#include <QGraphicsColorizeEffect>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QSlider>
+#include <QSpinBox>
+#include <QSplitter>
+#include <QVBoxLayout>
+#include <QtNetwork/QTcpSocket>
 
 // Local
 #include "Kaiwa.h"
@@ -62,7 +64,36 @@
 /******************************************************************************
  * Functions: Private
  */
+static void buildHostname(const QHostAddress& host_address, const quint16& port, QString& hostname)
+{
+	hostname.clear();
+	hostname.append(host_address.toString())
+		.append(" : ")
+		.append(QString::number(port))
+		;
+}
 
+static void setStateConnected(QListWidgetItem* item)
+{
+	QBrush brush = item->foreground();
+	QColor color = brush.color();
+
+	color.setAlpha(0xff);
+
+	brush.setColor(color);
+	item->setForeground(brush);
+}
+
+static void setStatePending(QListWidgetItem* item)
+{
+	QBrush brush = item->foreground();
+	QColor color = brush.color();
+
+	color.setAlpha(0x77);
+
+	brush.setColor(color);
+	item->setForeground(brush);
+}
 
 /******************************************************************************
  * Class Variables: Network
@@ -82,6 +113,10 @@ Network::Network(QObject* parent)
 	, pending_timer(this)
 	, server_socket(this)
 	, settings_widget()
+	, settings_connection_address(0)
+	, settings_connection_list(0)
+	, settings_connection_new(0)
+	, settings_connection_port(0)
 	, settings_listener_addr_type(0)
 	, settings_listener_address(0)
 	, settings_listener_port(0)
@@ -127,14 +162,24 @@ void Network::checkConnections()
 		QAbstractSocket::SocketState socket_state = socket->state();
 		if(socket_state == QAbstractSocket::ConnectedState)
 		{
-			printf("%d - Socket is connected: %s:%X %d\n"
+			printf("%d - Socket is connected:\n\tlocal: %s:%u\n\tpeer: %s:%u\n"
 				, getpid()
-				, socket->localAddress().toString().toStdString().c_str()
+				, toStr(socket->localAddress().toString())
 				, socket->localPort()
-				, socket->state()
+				, toStr(socket->peerAddress().toString())
+				, socket->peerPort()
 				);
 
 			connections_pending.removeAt(i);
+
+			QString hostname;
+			buildHostname(socket->peerAddress(), socket->peerPort(), hostname);
+			QList<QListWidgetItem*> items =
+				settings_connection_list->findItems(hostname, Qt::MatchFixedString);
+			if(items.size() > 0)
+			{
+				setStateConnected(items.at(0));
+			}
 			
 			connect(
 				socket, SIGNAL(readyRead()),
@@ -279,10 +324,124 @@ QWidget* Network::settings()
  */
 void Network::initSettings()
 {
-	//settings_widget.addTab(initSettingsConnctions(), tr("Connections"));
+	settings_widget.addTab(initSettingsConnections(), tr("Connections"));
 	settings_widget.addTab(initSettingsListener(), tr("Listener"));
 }
 
+
+/******************************************************************************
+ * Settings - Connections
+ */
+
+QWidget* Network::initSettingsConnections()
+{
+	settings_connection_address = new QLineEdit();
+	QGraphicsColorizeEffect* effect = new QGraphicsColorizeEffect();
+	effect->setColor(QColor(0xff, 0x00, 0x00));
+	effect->setStrength(1.0);
+	effect->setEnabled(false);
+	settings_connection_address->setGraphicsEffect(effect);
+
+	QLabel* address_label = new QLabel(tr("Address:"));
+	address_label->setBuddy(settings_connection_address);
+
+	settings_connection_port = new QSpinBox();
+	settings_connection_port->setRange(0x0001, 0xffff);
+	QLabel* port_label = new QLabel(tr("Port:"));
+	port_label->setBuddy(settings_connection_port);
+
+	QPushButton* clear = new QPushButton(tr("Clear"));
+	settings_connection_new = new QPushButton(tr("Connect To Host"));
+	settings_connection_new->setEnabled(false);
+
+	QHBoxLayout* buttons = new QHBoxLayout();
+	buttons->addWidget(clear);
+	buttons->addWidget(settings_connection_new);
+
+	settings_connection_list = new QListWidget();
+
+	QGridLayout* grid_layout = new QGridLayout();
+	grid_layout->addWidget(address_label,               0, 0, Qt::AlignRight);
+	grid_layout->addWidget(settings_connection_address, 0, 1);
+	grid_layout->addWidget(port_label,                  1, 0, Qt::AlignRight);
+	grid_layout->addWidget(settings_connection_port,    1, 1);
+	grid_layout->addLayout(buttons,                     2, 0, 1, 2);
+	grid_layout->addWidget(settings_connection_list,    3, 0, 1, 2);
+
+	QWidget* connection_list = new QWidget();
+	connection_list->setLayout(grid_layout);
+
+	QSplitter* connections = new QSplitter(Qt::Horizontal);
+	connections->setChildrenCollapsible(false);
+	connections->addWidget(connection_list);
+	connections->addWidget(new QLabel(""));
+
+	connect(
+		clear, SIGNAL(clicked()),
+		this, SLOT(settingsConnectionClearHost())
+		);
+	connect(
+		settings_connection_address, SIGNAL(textChanged(const QString&)),
+		this, SLOT(settingsConnectionVerifyAddress(const QString&))
+		);
+	connect(
+		settings_connection_new, SIGNAL(clicked()),
+		this, SLOT(settingsConnectionEstablish())
+		);
+
+	return connections;
+}
+
+void Network::settingsConnectionClearHost()
+{
+	settings_connection_address->clear();
+}
+
+void Network::settingsConnectionEstablish()
+{
+	QHostAddress host_address(settings_connection_address->text());
+	quint16 port = settings_connection_port->value();
+
+	QString hostname;
+	buildHostname(host_address, port, hostname);
+
+	QListWidgetItem* item = new QListWidgetItem(hostname);
+	setStatePending(item);
+	settings_connection_list->addItem(item);
+
+	QTcpSocket* socket = new QTcpSocket();
+	socket->connectToHost(host_address, port);
+
+	connections_pending.append(socket);
+}
+
+void Network::settingsConnectionVerifyAddress(const QString& address)
+{
+	QHostAddress host_address;
+
+	if(host_address.setAddress(address))
+	{
+		settings_connection_address->graphicsEffect()->setEnabled(false);
+		settings_connection_new->setEnabled(true);
+	}
+	else
+	{
+		if(address.isEmpty())
+		{
+			settings_connection_address->graphicsEffect()->setEnabled(false);
+		}
+		else
+		{
+			settings_connection_address->graphicsEffect()->setEnabled(true);
+		}
+
+		settings_connection_new->setEnabled(false);
+	}
+}
+
+/******************************************************************************
+ * Settings - Listener
+ */
 /**
  * \internal
  * \brief Initialize the Listener settings.
@@ -327,15 +486,15 @@ QWidget* Network::initSettingsListener()
 	settings_listener_addr_type->addButton(addr_specific, QHostAddress::Null);
 
 	// Listener - Port
-	settings_listener_port = new QSlider(Qt::Horizontal);
+	QSlider* port_slider = new QSlider(Qt::Horizontal);
+	port_slider->setRange(0x0000, 0xffff);
+	settings_listener_port = new QSpinBox();
+	settings_listener_port->setSpecialValueText("Any Available Port");
 	settings_listener_port->setRange(0x0000, 0xffff);
-	QSpinBox* port_spinbox = new QSpinBox();
-	port_spinbox->setSpecialValueText("Any Available Port");
-	port_spinbox->setRange(0x0000, 0xffff);
 
 	QVBoxLayout* layout_port = new QVBoxLayout();
+	layout_port->addWidget(port_slider);
 	layout_port->addWidget(settings_listener_port);
-	layout_port->addWidget(port_spinbox);
 
 	QGroupBox* group_port = new QGroupBox(tr("Port Number"));
 	group_port->setLayout(layout_port);
@@ -363,8 +522,8 @@ QWidget* Network::initSettingsListener()
 	connect(settings_listener_addr_type, SIGNAL(buttonClicked(int)), this, SLOT(settingsListenerUpdateButtons()));
 
 	connect(settings_listener_port, SIGNAL(valueChanged(int)), this,         SLOT(settingsListenerUpdateButtons()));
-	connect(settings_listener_port, SIGNAL(valueChanged(int)), port_spinbox, SLOT(setValue(int)));
-	connect(port_spinbox, SIGNAL(valueChanged(int)), settings_listener_port, SLOT(setValue(int)));
+	connect(settings_listener_port, SIGNAL(valueChanged(int)), port_slider, SLOT(setValue(int)));
+	connect(port_slider, SIGNAL(valueChanged(int)), settings_listener_port, SLOT(setValue(int)));
 
 	connect(settings_listener_set_default, SIGNAL(clicked()), this, SLOT(settingsListenerSetDefaults()));
 	connect(settings_listener_set_default, SIGNAL(clicked()), this, SLOT(settingsListenerUpdateButtons()));
@@ -424,7 +583,14 @@ void Network::settingsListenerVerifyAddress(const QString& address)
 	}
 	else
 	{
-		settings_listener_address->graphicsEffect()->setEnabled(true);
+		if(address.isEmpty())
+		{
+			settings_listener_address->graphicsEffect()->setEnabled(false);
+		}
+		else
+		{
+			settings_listener_address->graphicsEffect()->setEnabled(true);
+		}
 	}
 }
 
@@ -471,8 +637,8 @@ void Network::settingsListenerUpdateButtons()
 
 	if(new_address.isNull() || new_address.isEmpty())
 	{
-		settings_listener_use_now->setDisabled(true);
-		settings_listener_set_default->setDisabled(true);
+		settings_listener_use_now->setEnabled(false);
+		settings_listener_set_default->setEnabled(false);
 		return;
 	}
 
@@ -481,7 +647,7 @@ void Network::settingsListenerUpdateButtons()
 
 	if(new_address == current_address && new_port == current_port)
 	{
-		settings_listener_use_now->setDisabled(true);
+		settings_listener_use_now->setEnabled(false);
 	}
 	else
 	{
@@ -493,7 +659,7 @@ void Network::settingsListenerUpdateButtons()
 
 	if(new_address == default_address && new_port == default_port)
 	{
-		settings_listener_set_default->setDisabled(true);
+		settings_listener_set_default->setEnabled(false);
 	}
 	else
 	{
@@ -565,26 +731,3 @@ void Network::settingsListenerUseNow()
 
 	initListener(&host_address, &listener_port);
 }
-
-/**
- * \name Deprecated
- * \{
- */
-// Incoming connections
-bool Network::isListening() const
-{
-	//return server_socket.isListening();
-	return (server_socket.serverPort() == 0xCAFE);
-}
-
-// Outgoing connections
-void Network::connectTo(const QHostAddress& address, quint16 port)
-{
-	QTcpSocket* socket = new QTcpSocket();
-	socket->connectToHost(address, port);
-
-	connections_pending.append(socket);
-}
-/**
- * \}
- */
