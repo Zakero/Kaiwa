@@ -232,6 +232,11 @@ void Network::connectionRequest()
 	connections_pending.append(socket);
 }
 
+/**
+ * \internal
+ * Remove all disconnected sockets from the sockets_connected list.  Also 
+ * remove the disconnected sockets from the settings_connection_list.
+ */
 void Network::removeSocket()
 {
 	int i = 0;
@@ -282,6 +287,10 @@ void Network::removeSocket()
 	}
 }
 
+/**
+ * \internal
+ * Create a new socket using the command line connection values.
+ */
 bool Network::initConnection()
 {
 	QString value;
@@ -300,7 +309,13 @@ bool Network::initConnection()
 	quint16 port;
 	if(value.isNull() || value.isEmpty())
 	{
-		port = server_socket.serverPort();
+		port = default_port;
+
+		if(port == 0)
+		{
+			port = server_socket.serverPort();
+		}
+
 		if(port == 0)
 		{
 			return false;
@@ -353,6 +368,21 @@ bool Network::initListener()
 	return initListener(default_address, default_port);
 }
 
+/**
+ * \internal
+ * \brief Initialize the Server Socket.
+ *
+ * The server socket is used to listener for connection requests.  If a NULL 
+ * address is passed, then the stored value will be used.  If there is not 
+ * stored value, or if the stored value is invalid, use any address.
+ * <b>\p address is assumed to be valid</b>
+ *
+ * If a NULL port number is passed, then the stored value will be used.  If 
+ * there is not stored value, or if the stored value is invalid, use any 
+ * available port number.
+ *
+ * \note Currently any and all connections are accepted.
+ */
 bool Network::initListener(const QHostAddress& address //!< The Host Address
 	, const int& port //!< The Port number
 	)
