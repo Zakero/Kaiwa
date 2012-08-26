@@ -516,7 +516,7 @@ QWidget* Network::initSettingsListener()
 	QSlider* port_slider = new QSlider(Qt::Horizontal);
 	port_slider->setRange(0x0000, 0xffff);
 	settings_listener_port_edit = new QSpinBox();
-	settings_listener_port_edit->setSpecialValueText("Any Available Port");
+	settings_listener_port_edit->setSpecialValueText(tr("Any Available Port"));
 	settings_listener_port_edit->setRange(0x0000, 0xffff);
 	settings_listener_port_edit->setGraphicsEffect(
 		Kaiwa::createErrorEffect()
@@ -706,11 +706,11 @@ void Network::settingsListenerPortVerify(int port)
 		if(port < 1024)
 		// And user is not root
 		{
-			settings_listener_port_error->setText("Permission Denied");
+			settings_listener_port_error->setText(tr("Permission Denied"));
 		}
 		else
 		{
-			settings_listener_port_error->setText("Port In Use");
+			settings_listener_port_error->setText(tr("Port In Use"));
 		}
 
 		settings_listener_port_edit->graphicsEffect()->setEnabled(true);
