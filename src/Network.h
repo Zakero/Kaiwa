@@ -56,6 +56,7 @@ class QButtonGroup;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QListWidgetItem;
 class QPushButton;
 class QSpinBox;
 class QTcpSocket;
@@ -121,6 +122,7 @@ class Network
 		void settingsConnectionAddressVerify(const QString&);
 		void settingsConnectionClearHost();
 		void settingsConnectionEstablish();
+		void settingsConnectionsShowInfo(QListWidgetItem*);
 
 		void settingsListenerAddressTypeUpdate();
 		void settingsListenerAddressVerify(const QString&);
@@ -144,8 +146,9 @@ class Network
 		QTabWidget         settings_widget;
 		QLineEdit*         settings_connection_address;
 		QListWidget*       settings_connection_list;
-		QPushButton*       settings_connection_new;
+		QPushButton*       settings_connection_add;
 		QSpinBox*          settings_connection_port;
+		QPushButton*       settings_connection_remove;
 		QButtonGroup*      settings_listener_addr_type;
 		QHostAddress       settings_listener_address;
 		QLineEdit*         settings_listener_address_edit;

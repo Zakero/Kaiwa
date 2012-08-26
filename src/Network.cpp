@@ -117,8 +117,9 @@ Network::Network(QObject* parent)
 	, settings_widget()
 	, settings_connection_address(0)
 	, settings_connection_list(0)
-	, settings_connection_new(0)
+	, settings_connection_add(0)
 	, settings_connection_port(0)
+	, settings_connection_remove(0)
 	, settings_listener_addr_type(0)
 	, settings_listener_address()
 	, settings_listener_address_edit(0)
@@ -371,12 +372,12 @@ QWidget* Network::initSettingsConnections()
 	port_label->setBuddy(settings_connection_port);
 
 	QPushButton* clear = new QPushButton(tr("Clear"));
-	settings_connection_new = new QPushButton(tr("Connect To Host"));
-	settings_connection_new->setEnabled(false);
+	settings_connection_add = new QPushButton(tr("Connect To Host"));
+	settings_connection_add->setEnabled(false);
 
 	QHBoxLayout* buttons = new QHBoxLayout();
 	buttons->addWidget(clear);
-	buttons->addWidget(settings_connection_new);
+	buttons->addWidget(settings_connection_add);
 
 	settings_connection_list = new QListWidget();
 
@@ -394,7 +395,18 @@ QWidget* Network::initSettingsConnections()
 	QSplitter* connections = new QSplitter(Qt::Horizontal);
 	connections->setChildrenCollapsible(false);
 	connections->addWidget(connection_list);
-	connections->addWidget(new QLabel(""));
+
+	QGridLayout* gl = new QGridLayout();
+	settings_connection_remove = new QPushButton(tr("Remove Connection"));
+	settings_connection_remove->setEnabled(false);
+	gl->addWidget(new QLabel(), 0, 0); gl->addWidget(new QLabel(), 0, 1); gl->addWidget(new QLabel(), 0, 2);
+	gl->addWidget(new QLabel(), 1, 0);                                    gl->addWidget(new QLabel(), 1, 2);
+	gl->addWidget(new QLabel(), 2, 0); gl->addWidget(new QLabel(), 2, 1); gl->addWidget(new QLabel(), 2, 2);
+	gl->addWidget(settings_connection_remove, 1, 1);
+
+	QWidget* widget = new QWidget();
+	widget->setLayout(gl);
+	connections->addWidget(widget);
 
 	connect(
 		clear, SIGNAL(clicked()),
@@ -405,8 +417,12 @@ QWidget* Network::initSettingsConnections()
 		this, SLOT(settingsConnectionAddressVerify(const QString&))
 		);
 	connect(
-		settings_connection_new, SIGNAL(clicked()),
+		settings_connection_add, SIGNAL(clicked()),
 		this, SLOT(settingsConnectionEstablish())
+		);
+	connect(
+		settings_connection_list, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)),
+		this, SLOT(settingsConnectionsShowInfo(QListWidgetItem*))
 		);
 
 	return connections;
@@ -442,7 +458,7 @@ void Network::settingsConnectionAddressVerify(const QString& address)
 	if(host_address.setAddress(address))
 	{
 		settings_connection_address->graphicsEffect()->setEnabled(false);
-		settings_connection_new->setEnabled(true);
+		settings_connection_add->setEnabled(true);
 	}
 	else
 	{
@@ -455,7 +471,19 @@ void Network::settingsConnectionAddressVerify(const QString& address)
 			settings_connection_address->graphicsEffect()->setEnabled(true);
 		}
 
-		settings_connection_new->setEnabled(false);
+		settings_connection_add->setEnabled(false);
+	}
+}
+
+void Network::settingsConnectionsShowInfo(QListWidgetItem* current_item)
+{
+	if(current_item)
+	{
+		settings_connection_remove->setEnabled(true);
+	}
+	else
+	{
+		settings_connection_remove->setEnabled(false);
 	}
 }
 
