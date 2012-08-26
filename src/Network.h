@@ -134,6 +134,7 @@ class Network
 		void settingsListenerUseNow();
 
 	private:
+		bool initConnection();
 		bool initListener();
 		bool initListener(const QHostAddress&, const int&);
 		void initSettings();

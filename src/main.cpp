@@ -67,9 +67,11 @@ static void parseArgs()
 		const char* section;
 		const char* group;
 		const char* key;
-	} param[] = // name                    reqv  section    group       key
-	{	{ "-network-listener-address", true, "Network", "Listener", "Address" }
-	,	{ "-network-listener-port",    true, "Network", "Listener", "Port"    }
+	} param[] = // name                    reqv  section    group         key
+	{	{ "-network-listener-address", true, "Network", "Listener",   "Address" }
+	,	{ "-network-listener-port",    true, "Network", "Listener",   "Port"    }
+	,	{ "-network-connect-address",  true, "Network", "Connection", "Address" }
+	,	{ "-network-connect-port",     true, "Network", "Connection", "Port"    }
 	,	{ NULL, false, NULL, NULL, NULL },
 	};
 

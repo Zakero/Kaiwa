@@ -155,6 +155,7 @@ Network::Network(QObject* parent)
 	pending_timer.start(1000);
 
 	initListener();
+	initConnection();
 	initSettings();
 }
 
@@ -279,6 +280,43 @@ void Network::removeSocket()
 
 		i++;
 	}
+}
+
+bool Network::initConnection()
+{
+	QString value;
+
+	value = Kaiwa::getCommandLineValue("Network", "Connection", "Address").toString();
+
+	if(value.isNull() || value.isEmpty())
+	{
+		return false;
+	}
+
+	QHostAddress address(value);
+
+	value = Kaiwa::getCommandLineValue("Network", "Connection", "Port").toString();
+
+	quint16 port;
+	if(value.isNull() || value.isEmpty())
+	{
+		port = server_socket.serverPort();
+		if(port == 0)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		port = value.toUInt();
+	}
+
+	QTcpSocket* socket = new QTcpSocket();
+	socket->connectToHost(address, port);
+
+	connections_pending.append(socket);
+
+	return true;
 }
 
 /**
