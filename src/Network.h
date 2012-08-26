@@ -120,10 +120,10 @@ class Network
 		void readData();
 		void removeSocket();
 
+		void settingsConnectionAdd();
 		void settingsConnectionAddressVerify(const QString&);
-		void settingsConnectionClearHost();
-		void settingsConnectionEstablish();
 		void settingsConnectionRemove();
+		void settingsConnectionReset();
 		void settingsConnectionShowInfo(QListWidgetItem*);
 
 		void settingsListenerAddressTypeUpdate();
@@ -135,6 +135,7 @@ class Network
 
 	private:
 		bool initConnection();
+		bool initConnection(const QHostAddress&, const int&);
 		bool initListener();
 		bool initListener(const QHostAddress&, const int&);
 		void initSettings();
@@ -147,11 +148,12 @@ class Network
 		quint16            default_port;
 
 		QTabWidget         settings_widget;
+		QPushButton*       settings_connection_add;
 		QLineEdit*         settings_connection_address;
 		QListWidget*       settings_connection_list;
-		QPushButton*       settings_connection_add;
 		QSpinBox*          settings_connection_port;
 		QPushButton*       settings_connection_remove;
+		QPushButton*       settings_connection_reset;
 		QButtonGroup*      settings_listener_addr_type;
 		QHostAddress       settings_listener_address;
 		QLineEdit*         settings_listener_address_edit;

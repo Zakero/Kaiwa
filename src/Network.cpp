@@ -123,11 +123,12 @@ Network::Network(QObject* parent)
 	, default_address()
 	, default_port(0)
 	, settings_widget()
+	, settings_connection_add(0)
 	, settings_connection_address(0)
 	, settings_connection_list(0)
-	, settings_connection_add(0)
 	, settings_connection_port(0)
 	, settings_connection_remove(0)
+	, settings_connection_reset(0)
 	, settings_listener_addr_type(0)
 	, settings_listener_address()
 	, settings_listener_address_edit(0)
@@ -326,6 +327,17 @@ bool Network::initConnection()
 		port = value.toUInt();
 	}
 
+	return initConnection(address, port);
+}
+
+/**
+ * \internal
+ * Create a new connection using the provided values.
+ */
+bool Network::initConnection(const QHostAddress& address //!< The Host Address
+	, const int& port //!< The Port number
+	)
+{
 	QTcpSocket* socket = new QTcpSocket();
 	socket->connectToHost(address, port);
 
@@ -492,8 +504,17 @@ void Network::initSettings()
  * Settings - Connections
  */
 
+/**
+ * \internal
+ * Create the Connection Settings widget.  This widget will provide the user 
+ * interface for:
+ * - Connecting to another Kaiwa application.
+ * - Disconnecting from another Kaiwa application.
+ * - [TODO] Showing information about a current connection.
+ */
 QWidget* Network::initSettingsConnections()
 {
+	// Address
 	settings_connection_address = new QLineEdit();
 	settings_connection_address->setGraphicsEffect(
 		Kaiwa::createErrorEffect()
@@ -502,22 +523,29 @@ QWidget* Network::initSettingsConnections()
 	QLabel* address_label = new QLabel(tr("Address:"));
 	address_label->setBuddy(settings_connection_address);
 
+	// Port
 	settings_connection_port = new QSpinBox();
 	settings_connection_port->setRange(0x0001, 0xffff);
 	QLabel* port_label = new QLabel(tr("Port:"));
 	port_label->setBuddy(settings_connection_port);
 
-	QPushButton* clear = new QPushButton(tr("Clear"));
+	// Reset Button
+	settings_connection_reset = new QPushButton(tr("Reset"));
+
+	// Connect Button
 	settings_connection_add = new QPushButton(tr("Connect To Host"));
 	settings_connection_add->setEnabled(false);
 
+	// Button Layout
 	QHBoxLayout* buttons = new QHBoxLayout();
-	buttons->addWidget(clear);
+	buttons->addWidget(settings_connection_reset);
 	buttons->addWidget(settings_connection_add);
 
+	// Connection List
 	settings_connection_list = new QListWidget();
 	settings_connection_list->setSelectionMode(QAbstractItemView::SingleSelection);
 
+	// Layout all the connection widgets
 	QGridLayout* grid_layout = new QGridLayout();
 	grid_layout->addWidget(address_label,               0, 0, Qt::AlignRight);
 	grid_layout->addWidget(settings_connection_address, 0, 1);
@@ -526,28 +554,31 @@ QWidget* Network::initSettingsConnections()
 	grid_layout->addLayout(buttons,                     2, 0, 1, 2);
 	grid_layout->addWidget(settings_connection_list,    3, 0, 1, 2);
 
+	// Connection Widget
 	QWidget* connection_list = new QWidget();
 	connection_list->setLayout(grid_layout);
 
+	// Connection Information
+	settings_connection_remove = new QPushButton(tr("Disconnect"));
+	QVBoxLayout* vb = new QVBoxLayout();
+	vb->addStretch();
+	vb->addWidget(settings_connection_remove);
+	vb->addStretch();
+	settings_connection_remove->setVisible(false);
+
+	QWidget* widget = new QWidget();
+	widget->setLayout(vb);
+
+	// Show both the connection list and connection information
 	QSplitter* connections = new QSplitter(Qt::Horizontal);
 	connections->setChildrenCollapsible(false);
 	connections->addWidget(connection_list);
-
-	QGridLayout* gl = new QGridLayout();
-	settings_connection_remove = new QPushButton(tr("Remove Connection"));
-	settings_connection_remove->setEnabled(false);
-	gl->addWidget(new QLabel(), 0, 0); gl->addWidget(new QLabel(), 0, 1); gl->addWidget(new QLabel(), 0, 2);
-	gl->addWidget(new QLabel(), 1, 0);                                    gl->addWidget(new QLabel(), 1, 2);
-	gl->addWidget(new QLabel(), 2, 0); gl->addWidget(new QLabel(), 2, 1); gl->addWidget(new QLabel(), 2, 2);
-	gl->addWidget(settings_connection_remove, 1, 1);
-
-	QWidget* widget = new QWidget();
-	widget->setLayout(gl);
 	connections->addWidget(widget);
 
+	// Signal and Slots
 	connect(
-		clear, SIGNAL(clicked()),
-		this, SLOT(settingsConnectionClearHost())
+		settings_connection_reset, SIGNAL(clicked()),
+		this, SLOT(settingsConnectionReset())
 		);
 	connect(
 		settings_connection_address, SIGNAL(textChanged(const QString&)),
@@ -555,7 +586,7 @@ QWidget* Network::initSettingsConnections()
 		);
 	connect(
 		settings_connection_add, SIGNAL(clicked()),
-		this, SLOT(settingsConnectionEstablish())
+		this, SLOT(settingsConnectionAdd())
 		);
 	connect(
 		settings_connection_list, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)),
@@ -566,32 +597,57 @@ QWidget* Network::initSettingsConnections()
 		this, SLOT(settingsConnectionRemove())
 		);
 
+	// Initialize the values
+	settingsConnectionReset();
+
 	return connections;
 }
 
-void Network::settingsConnectionClearHost()
+/**
+ * \internal
+ * Reset the data entry values.
+ */
+void Network::settingsConnectionReset()
 {
 	settings_connection_address->clear();
+
+	int port = listener_port;
+	if(port == 0)
+	{
+		port = server_socket.serverPort();
+	}
+
+	if(port == 0)
+	{
+		port = 1;
+	}
+
+	settings_connection_port->setValue(port);
 }
 
-void Network::settingsConnectionEstablish()
+/**
+ * \internal
+ * Add a new connection.
+ */
+void Network::settingsConnectionAdd()
 {
-	QHostAddress host_address(settings_connection_address->text());
+	QHostAddress address(settings_connection_address->text());
 	quint16 port = settings_connection_port->value();
 
 	QString hostname;
-	buildHostname(host_address, port, hostname);
+	buildHostname(address, port, hostname);
 
 	QListWidgetItem* item = new QListWidgetItem(hostname);
 	setStatePending(item);
 	settings_connection_list->addItem(item);
 
-	QTcpSocket* socket = new QTcpSocket();
-	socket->connectToHost(host_address, port);
-
-	connections_pending.append(socket);
+	initConnection(address, port);
 }
 
+/**
+ * \internal
+ * Check the address to see if it is likely to be valid.
+ */
 void Network::settingsConnectionAddressVerify(const QString& address)
 {
 	QHostAddress host_address;
@@ -616,6 +672,10 @@ void Network::settingsConnectionAddressVerify(const QString& address)
 	}
 }
 
+/**
+ * \internal
+ * Remove the currently selected connection.
+ */
 void Network::settingsConnectionRemove()
 {
 	QListWidgetItem* item = settings_connection_list->currentItem();
@@ -641,15 +701,19 @@ void Network::settingsConnectionRemove()
 	}
 }
 
+/**
+ * \internal
+ * Show the currently selected connection information.
+ */
 void Network::settingsConnectionShowInfo(QListWidgetItem* current_item)
 {
 	if(current_item)
 	{
-		settings_connection_remove->setEnabled(true);
+		settings_connection_remove->setVisible(true);
 	}
 	else
 	{
-		settings_connection_remove->setEnabled(false);
+		settings_connection_remove->setVisible(false);
 	}
 }
 
@@ -878,6 +942,10 @@ void Network::settingsListenerAddressTypeUpdate()
 	settingsListenerUpdateButtons();
 }
 
+/**
+ * \internal
+ * Check the provided port value to make sure it is valid.
+ */
 void Network::settingsListenerPortVerify(int port)
 {
 	QTcpServer test_socket;
@@ -916,6 +984,10 @@ void Network::settingsListenerPortVerify(int port)
 	settingsListenerUpdateButtons();
 }
 
+/**
+ * \internal
+ * Update the buttons to reflect the current state of the values.
+ */
 void Network::settingsListenerUpdateButtons()
 {
 	if(settings_listener_address.isNull()  // Invalid Address
