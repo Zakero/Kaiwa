@@ -118,11 +118,13 @@ class Network
 		void checkConnections();
 		void connectionRequest();
 		void readData();
+		void removeSocket();
 
 		void settingsConnectionAddressVerify(const QString&);
 		void settingsConnectionClearHost();
 		void settingsConnectionEstablish();
-		void settingsConnectionsShowInfo(QListWidgetItem*);
+		void settingsConnectionRemove();
+		void settingsConnectionShowInfo(QListWidgetItem*);
 
 		void settingsListenerAddressTypeUpdate();
 		void settingsListenerAddressVerify(const QString&);

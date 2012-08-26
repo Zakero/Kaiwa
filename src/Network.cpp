@@ -64,13 +64,21 @@
 /******************************************************************************
  * Functions: Private
  */
-static void buildHostname(const QHostAddress& host_address, const quint16& port, QString& hostname)
+static void buildHostname(const QHostAddress& address, const quint16& port, QString& hostname)
 {
 	hostname.clear();
-	hostname.append(host_address.toString())
-		.append(" : ")
+	hostname.append(address.toString())
+		.append("#")
 		.append(QString::number(port))
 		;
+}
+
+static void splitHostname(const QString& hostname, QHostAddress& address, quint16& port)
+{
+	QStringList parts = hostname.split('#');
+
+	address.setAddress(parts[0]);
+	port = parts[1].toUInt();
 }
 
 static void setStateConnected(QListWidgetItem* item)
@@ -187,10 +195,20 @@ void Network::checkConnections()
 			{
 				setStateConnected(items.at(0));
 			}
+			else
+			{
+				new QListWidgetItem(hostname
+					, settings_connection_list
+					);
+			}
 			
 			connect(
 				socket, SIGNAL(readyRead()),
 				this, SLOT(readData())
+				);
+			connect(
+				socket, SIGNAL(disconnected()),
+				this, SLOT(removeSocket())
 				);
 
 			sockets_connected.append(socket);
@@ -211,6 +229,56 @@ void Network::connectionRequest()
 {
 	QTcpSocket* socket = server_socket.nextPendingConnection();
 	connections_pending.append(socket);
+}
+
+void Network::removeSocket()
+{
+	int i = 0;
+	while(i < sockets_connected.size())
+	{
+		QTcpSocket* socket = sockets_connected.at(i);
+		if(socket->state() == QAbstractSocket::UnconnectedState)
+		{
+			sockets_connected.removeAt(i);
+			socket->deleteLater();
+		}
+		else
+		{
+			i++;
+		}
+	}
+
+	i = 0;
+	while(i < settings_connection_list->count())
+	{
+		QHostAddress address;
+		quint16 port;
+
+		QListWidgetItem* item = settings_connection_list->item(i);
+		splitHostname(item->text(), address, port);
+
+		bool found_it = false;
+
+		for(int j = 0; j < sockets_connected.size(); j++)
+		{
+			QTcpSocket* socket = sockets_connected.at(j);
+			if(socket->peerAddress() == address
+				&& socket->peerPort() == port
+				)
+			{
+				found_it = true;
+				break;
+			}
+		}
+
+		if(!found_it)
+		{
+			settings_connection_list->removeItemWidget(item);
+			delete item;
+		}
+
+		i++;
+	}
 }
 
 /**
@@ -380,6 +448,7 @@ QWidget* Network::initSettingsConnections()
 	buttons->addWidget(settings_connection_add);
 
 	settings_connection_list = new QListWidget();
+	settings_connection_list->setSelectionMode(QAbstractItemView::SingleSelection);
 
 	QGridLayout* grid_layout = new QGridLayout();
 	grid_layout->addWidget(address_label,               0, 0, Qt::AlignRight);
@@ -422,7 +491,11 @@ QWidget* Network::initSettingsConnections()
 		);
 	connect(
 		settings_connection_list, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)),
-		this, SLOT(settingsConnectionsShowInfo(QListWidgetItem*))
+		this, SLOT(settingsConnectionShowInfo(QListWidgetItem*))
+		);
+	connect(
+		settings_connection_remove, SIGNAL(clicked()),
+		this, SLOT(settingsConnectionRemove())
 		);
 
 	return connections;
@@ -475,7 +548,32 @@ void Network::settingsConnectionAddressVerify(const QString& address)
 	}
 }
 
-void Network::settingsConnectionsShowInfo(QListWidgetItem* current_item)
+void Network::settingsConnectionRemove()
+{
+	QListWidgetItem* item = settings_connection_list->currentItem();
+
+	QHostAddress address;
+	quint16 port;
+
+	splitHostname(item->text(), address, port);
+
+	int i = 0;
+	while(i < sockets_connected.size())
+	{
+		QTcpSocket* socket = sockets_connected.at(i);
+
+		if(socket->peerAddress() == address
+			&& socket->peerPort() == port
+			)
+		{
+			socket->disconnectFromHost();
+		}
+
+		i++;
+	}
+}
+
+void Network::settingsConnectionShowInfo(QListWidgetItem* current_item)
 {
 	if(current_item)
 	{
