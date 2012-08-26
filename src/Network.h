@@ -130,7 +130,8 @@ class Network
 		void settingsListenerUseNow();
 
 	private:
-		bool initListener(QHostAddress* = 0, int* = 0);
+		bool initListener();
+		bool initListener(const QHostAddress&, const int&);
 		void initSettings();
 		QWidget* initSettingsConnections();
 		QWidget* initSettingsListener();

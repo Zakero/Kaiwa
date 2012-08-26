@@ -31,6 +31,7 @@
 //ANSI/POSIX
 
 // Qt
+#include <QGraphicsEffect>
 #include <QMainWindow>
 #include <QVariant>
 
@@ -89,6 +90,18 @@ class Kaiwa
 		 * \retval  The name of the user.
 		 */
 		static QString username();
+
+		/**
+		 * \brief Highlight an error.
+		 *
+		 * Create a effect that can be used to highlight a widget in an 
+		 * error state.
+		 * - <b>Enabled</b> the effect to show an <b>error</b>.
+		 * - <b>Disable</b> the effect to show <b>no error</b>.
+		 */
+		static QGraphicsEffect* createErrorEffect(
+			bool = false //!< Is the effect initially enabled?
+			);
 
 		/**
 		 * \name Managed Values

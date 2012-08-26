@@ -31,7 +31,6 @@
 #include <QButtonGroup>
 #include <QByteArray>
 #include <QColor>
-#include <QGraphicsColorizeEffect>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -228,49 +227,37 @@ void Network::connectionRequest()
  *
  * \note Currently any and all connections are accepted.
  */
-bool Network::initListener(QHostAddress* address //!< The Host Address
-	, int* port //!< The Port number
-	)
+bool Network::initListener()
 {
 	QString value;
-	QHostAddress host_address;
 
-	if(address != 0)
+	value = Kaiwa::getValue("Network", "Listener", "Address").toString();
+	value = Kaiwa::getCommandLineValue("Network", "Listener", "Address", value).toString();
+
+	if(default_address.setAddress(value) == false)
 	{
-		host_address = *address;
-	}
-	else
-	{
-		value = Kaiwa::getValue("Network", "Listener", "Address").toString();
-		value = Kaiwa::getCommandLineValue("Network", "Listener", "Address", value).toString();
-
-		if(default_address.setAddress(value) == false)
-		{
-			default_address = QHostAddress::Any;
-		}
-
-		host_address = default_address;
+		default_address = QHostAddress::Any;
 	}
 
-	if(port)
-	{
-		listener_port = *port;
-	}
-	else
-	{
-		value = Kaiwa::getValue("Network", "Listener", "Port").toString();
-		value = Kaiwa::getCommandLineValue("Network", "Listener", "Port", value).toString();
-		default_port = value.toUInt(0, 0);
+	value = Kaiwa::getValue("Network", "Listener", "Port").toString();
+	value = Kaiwa::getCommandLineValue("Network", "Listener", "Port", value).toString();
+	default_port = value.toUInt(0, 0);
 
-		listener_port = default_port;
-	}
+	return initListener(default_address, default_port);
+}
+
+bool Network::initListener(const QHostAddress& address //!< The Host Address
+	, const int& port //!< The Port number
+	)
+{
+	listener_port = port;
 
 	if(server_socket.isListening())
 	{
 		server_socket.close();
 	}
 
-	server_socket.listen(host_address, listener_port);
+	server_socket.listen(address, listener_port);
 
 printf("%d listening(%s): %s:%d\n"
 , getpid()
@@ -296,6 +283,7 @@ for(int i = 0; i < address_list.size(); i++)
 
 	return server_socket.isListening();
 }
+
 
 // Message handling
 /**
@@ -370,11 +358,9 @@ void Network::initSettings()
 QWidget* Network::initSettingsConnections()
 {
 	settings_connection_address = new QLineEdit();
-	QGraphicsColorizeEffect* effect = new QGraphicsColorizeEffect();
-	effect->setColor(QColor(0xff, 0x00, 0x00));
-	effect->setStrength(1.0);
-	effect->setEnabled(false);
-	settings_connection_address->setGraphicsEffect(effect);
+	settings_connection_address->setGraphicsEffect(
+		Kaiwa::createErrorEffect()
+		);
 
 	QLabel* address_label = new QLabel(tr("Address:"));
 	address_label->setBuddy(settings_connection_address);
@@ -500,11 +486,9 @@ QWidget* Network::initSettingsListener()
 
 	settings_listener_address_error = new QLabel();
 	settings_listener_address_error->setAlignment(Qt::AlignCenter);
-	effect = new QGraphicsColorizeEffect();
-	effect->setColor(QColor(0xff, 0x00, 0x00));
-	effect->setStrength(1.0);
-	effect->setEnabled(true);
-	settings_listener_address_error->setGraphicsEffect(effect);
+	settings_listener_address_error->setGraphicsEffect(
+		Kaiwa::createErrorEffect(true)
+		);
 
 	// Layout the buttons
 	QGridLayout* layout_address = new QGridLayout();
@@ -534,19 +518,15 @@ QWidget* Network::initSettingsListener()
 	settings_listener_port_edit = new QSpinBox();
 	settings_listener_port_edit->setSpecialValueText("Any Available Port");
 	settings_listener_port_edit->setRange(0x0000, 0xffff);
-	QGraphicsColorizeEffect* port_effect = new QGraphicsColorizeEffect();
-	port_effect->setColor(QColor(0xff, 0x00, 0x00));
-	port_effect->setStrength(1.0);
-	port_effect->setEnabled(false);
-	settings_listener_port_edit->setGraphicsEffect(port_effect);
+	settings_listener_port_edit->setGraphicsEffect(
+		Kaiwa::createErrorEffect()
+		);
 
 	settings_listener_port_error = new QLabel();
 	settings_listener_port_error->setAlignment(Qt::AlignCenter);
-	effect = new QGraphicsColorizeEffect();
-	effect->setColor(QColor(0xff, 0x00, 0x00));
-	effect->setStrength(1.0);
-	effect->setEnabled(true);
-	settings_listener_port_error->setGraphicsEffect(effect);
+	settings_listener_port_error->setGraphicsEffect(
+		Kaiwa::createErrorEffect(true)
+		);
 
 	QVBoxLayout* layout_port = new QVBoxLayout();
 	layout_port->addWidget(port_slider);
@@ -798,6 +778,6 @@ void Network::settingsListenerSetDefaults()
  */
 void Network::settingsListenerUseNow()
 {
-	initListener(&settings_listener_address, &settings_listener_port);
+	initListener(settings_listener_address, settings_listener_port);
 	settingsListenerUpdateButtons();
 }

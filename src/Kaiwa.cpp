@@ -29,7 +29,9 @@
 #include <string>
 
 // Qt
+#include <QColor>
 #include <QHostAddress>
+#include <QGraphicsColorizeEffect>
 #include <QPushButton>
 #include <QSettings>
 #include <QTabWidget>
@@ -118,6 +120,20 @@ Kaiwa::Kaiwa(QWidget* parent)
 		&network, SIGNAL(recievedMessage(const Message&)),
 		message_view, SLOT(addMessage(const Message&))
 		);
+}
+
+/**
+ * \internal
+ *
+ */
+QGraphicsEffect* Kaiwa::createErrorEffect(bool enabled)
+{
+	QGraphicsColorizeEffect* effect = new QGraphicsColorizeEffect();
+	effect->setColor(QColor(0xff, 0x00, 0x00));
+	effect->setStrength(1.0);
+	effect->setEnabled(enabled);
+
+	return effect;
 }
 
 QString Kaiwa::username()
