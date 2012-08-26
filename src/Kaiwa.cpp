@@ -26,6 +26,7 @@
  * Includes
  */
 // ANSI/POSIX
+#include <string>
 
 // Qt
 #include <QHostAddress>
