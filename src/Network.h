@@ -31,14 +31,14 @@
 //ANSI/POSIX
 
 // Qt
+#include <QHostAddress>
 #include <QList>
 #include <QObject>
+#include <QString>
 #include <QTimer>
 #include <QTabWidget>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QTcpServer>
-
-#include <QString>
 
 // Local
 #include "Message.h"
@@ -53,6 +53,7 @@
  * Forward Declarations
  */
 class QButtonGroup;
+class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
@@ -117,31 +118,40 @@ class Network
 		void connectionRequest();
 		void readData();
 
+		void settingsConnectionAddressVerify(const QString&);
 		void settingsConnectionClearHost();
 		void settingsConnectionEstablish();
-		void settingsConnectionVerifyAddress(const QString&);
 
-		void settingsListenerVerifyAddress(const QString&);
+		void settingsListenerAddressTypeUpdate();
+		void settingsListenerAddressVerify(const QString&);
+		void settingsListenerPortVerify(int);
 		void settingsListenerUpdateButtons();
 		void settingsListenerSetDefaults();
 		void settingsListenerUseNow();
 
 	private:
-		void initListener(QHostAddress* = 0, quint16* = 0);
+		bool initListener(QHostAddress* = 0, int* = 0);
 		void initSettings();
 		QWidget* initSettingsConnections();
 		QWidget* initSettingsListener();
 
 		QTimer             pending_timer;
 		QTcpServer         server_socket;
+		QHostAddress       default_address;
+		quint16            default_port;
+
 		QTabWidget         settings_widget;
 		QLineEdit*         settings_connection_address;
 		QListWidget*       settings_connection_list;
 		QPushButton*       settings_connection_new;
 		QSpinBox*          settings_connection_port;
 		QButtonGroup*      settings_listener_addr_type;
-		QLineEdit*         settings_listener_address;
-		QSpinBox*          settings_listener_port;
+		QHostAddress       settings_listener_address;
+		QLineEdit*         settings_listener_address_edit;
+		QLabel*            settings_listener_address_error;
+		int                settings_listener_port;
+		QSpinBox*          settings_listener_port_edit;
+		QLabel*            settings_listener_port_error;
 		QPushButton*       settings_listener_set_default;
 		QPushButton*       settings_listener_use_now;
 		QList<QTcpSocket*> sockets_connected;

@@ -35,6 +35,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QHostInfo>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -112,14 +113,20 @@ Network::Network(QObject* parent)
 	: QObject(parent)
 	, pending_timer(this)
 	, server_socket(this)
+	, default_address()
+	, default_port(0)
 	, settings_widget()
 	, settings_connection_address(0)
 	, settings_connection_list(0)
 	, settings_connection_new(0)
 	, settings_connection_port(0)
 	, settings_listener_addr_type(0)
-	, settings_listener_address(0)
-	, settings_listener_port(0)
+	, settings_listener_address()
+	, settings_listener_address_edit(0)
+	, settings_listener_address_error(0)
+	, settings_listener_port(-1)
+	, settings_listener_port_edit(0)
+	, settings_listener_port_error(0)
 	, settings_listener_set_default(0)
 	, settings_listener_use_now(0)
 	, sockets_connected()
@@ -213,6 +220,7 @@ void Network::connectionRequest()
  * The server socket is used to listener for connection requests.  If a NULL 
  * address is passed, then the stored value will be used.  If there is not 
  * stored value, or if the stored value is invalid, use any address.
+ * <b>\p address is assumed to be valid</b>
  *
  * If a NULL port number is passed, then the stored value will be used.  If 
  * there is not stored value, or if the stored value is invalid, use any 
@@ -220,8 +228,8 @@ void Network::connectionRequest()
  *
  * \note Currently any and all connections are accepted.
  */
-void Network::initListener(QHostAddress* address //!< The Host Address
-	, quint16* port //!< The Port number
+bool Network::initListener(QHostAddress* address //!< The Host Address
+	, int* port //!< The Port number
 	)
 {
 	QString value;
@@ -236,10 +244,12 @@ void Network::initListener(QHostAddress* address //!< The Host Address
 		value = Kaiwa::getValue("Network", "Listener", "Address").toString();
 		value = Kaiwa::getCommandLineValue("Network", "Listener", "Address", value).toString();
 
-		if(host_address.setAddress(value) == false)
+		if(default_address.setAddress(value) == false)
 		{
-			host_address = QHostAddress::Any;
+			default_address = QHostAddress::Any;
 		}
+
+		host_address = default_address;
 	}
 
 	if(port)
@@ -250,7 +260,9 @@ void Network::initListener(QHostAddress* address //!< The Host Address
 	{
 		value = Kaiwa::getValue("Network", "Listener", "Port").toString();
 		value = Kaiwa::getCommandLineValue("Network", "Listener", "Port", value).toString();
-		listener_port = value.toUInt(0, 0);
+		default_port = value.toUInt(0, 0);
+
+		listener_port = default_port;
 	}
 
 	if(server_socket.isListening())
@@ -260,7 +272,29 @@ void Network::initListener(QHostAddress* address //!< The Host Address
 
 	server_socket.listen(host_address, listener_port);
 
-//printf("listening to: %s:%x\n", toStr(server_socket.serverAddress().toString()), server_socket.serverPort());
+printf("%d listening(%s): %s:%d\n"
+, getpid()
+, server_socket.isListening() ? "T" : "F"
+, toStr(server_socket.serverAddress().toString())
+, server_socket.serverPort()
+);
+
+/*
+printf("hostname: %s\n", toStr(QHostInfo::localHostName()));
+
+QHostInfo host_info = QHostInfo::fromName("localhost");
+QList<QHostAddress> address_list = host_info.addresses();
+
+host_info = QHostInfo::fromName(QHostInfo::localHostName());
+address_list.append(host_info.addresses());
+
+for(int i = 0; i < address_list.size(); i++)
+{
+	printf("%d %s\n", i, toStr(address_list.at(i).toString()));
+}
+*/
+
+	return server_socket.isListening();
 }
 
 // Message handling
@@ -382,7 +416,7 @@ QWidget* Network::initSettingsConnections()
 		);
 	connect(
 		settings_connection_address, SIGNAL(textChanged(const QString&)),
-		this, SLOT(settingsConnectionVerifyAddress(const QString&))
+		this, SLOT(settingsConnectionAddressVerify(const QString&))
 		);
 	connect(
 		settings_connection_new, SIGNAL(clicked()),
@@ -415,7 +449,7 @@ void Network::settingsConnectionEstablish()
 	connections_pending.append(socket);
 }
 
-void Network::settingsConnectionVerifyAddress(const QString& address)
+void Network::settingsConnectionAddressVerify(const QString& address)
 {
 	QHostAddress host_address;
 
@@ -457,12 +491,20 @@ QWidget* Network::initSettingsListener()
 	QRadioButton* addr_ip6_any  = new QRadioButton(tr("IPv6 Any Address"));
 	QRadioButton* addr_specific = new QRadioButton(tr("A Specific Address"));
 
-	settings_listener_address = new QLineEdit();
+	settings_listener_address_edit = new QLineEdit();
 	QGraphicsColorizeEffect* effect = new QGraphicsColorizeEffect();
 	effect->setColor(QColor(0xff, 0x00, 0x00));
 	effect->setStrength(1.0);
 	effect->setEnabled(false);
-	settings_listener_address->setGraphicsEffect(effect);
+	settings_listener_address_edit->setGraphicsEffect(effect);
+
+	settings_listener_address_error = new QLabel();
+	settings_listener_address_error->setAlignment(Qt::AlignCenter);
+	effect = new QGraphicsColorizeEffect();
+	effect->setColor(QColor(0xff, 0x00, 0x00));
+	effect->setStrength(1.0);
+	effect->setEnabled(true);
+	settings_listener_address_error->setGraphicsEffect(effect);
 
 	// Layout the buttons
 	QGridLayout* layout_address = new QGridLayout();
@@ -471,7 +513,8 @@ QWidget* Network::initSettingsListener()
 	layout_address->addWidget(addr_ip6_local, 0, 1);
 	layout_address->addWidget(addr_ip6_any,   1, 1);
 	layout_address->addWidget(addr_specific,  2, 0, 1, 2);
-	layout_address->addWidget(settings_listener_address, 3, 0, 1, 2);
+	layout_address->addWidget(settings_listener_address_edit,  3, 0, 1, 2);
+	layout_address->addWidget(settings_listener_address_error, 4, 0, 1, 2);
 
 	// Display the buttons
 	QGroupBox* group_address = new QGroupBox(tr("Address"));
@@ -488,13 +531,27 @@ QWidget* Network::initSettingsListener()
 	// Listener - Port
 	QSlider* port_slider = new QSlider(Qt::Horizontal);
 	port_slider->setRange(0x0000, 0xffff);
-	settings_listener_port = new QSpinBox();
-	settings_listener_port->setSpecialValueText("Any Available Port");
-	settings_listener_port->setRange(0x0000, 0xffff);
+	settings_listener_port_edit = new QSpinBox();
+	settings_listener_port_edit->setSpecialValueText("Any Available Port");
+	settings_listener_port_edit->setRange(0x0000, 0xffff);
+	QGraphicsColorizeEffect* port_effect = new QGraphicsColorizeEffect();
+	port_effect->setColor(QColor(0xff, 0x00, 0x00));
+	port_effect->setStrength(1.0);
+	port_effect->setEnabled(false);
+	settings_listener_port_edit->setGraphicsEffect(port_effect);
+
+	settings_listener_port_error = new QLabel();
+	settings_listener_port_error->setAlignment(Qt::AlignCenter);
+	effect = new QGraphicsColorizeEffect();
+	effect->setColor(QColor(0xff, 0x00, 0x00));
+	effect->setStrength(1.0);
+	effect->setEnabled(true);
+	settings_listener_port_error->setGraphicsEffect(effect);
 
 	QVBoxLayout* layout_port = new QVBoxLayout();
 	layout_port->addWidget(port_slider);
-	layout_port->addWidget(settings_listener_port);
+	layout_port->addWidget(settings_listener_port_edit);
+	layout_port->addWidget(settings_listener_port_error);
 
 	QGroupBox* group_port = new QGroupBox(tr("Port Number"));
 	group_port->setLayout(layout_port);
@@ -516,51 +573,41 @@ QWidget* Network::initSettingsListener()
 	QWidget* listener = new QWidget();
 	listener->setLayout(vbox);
 
-	// Connections
-	connect(settings_listener_address, SIGNAL(textEdited(const QString&)), this, SLOT(settingsListenerVerifyAddress(const QString&)));
-	connect(settings_listener_address, SIGNAL(textEdited(const QString&)), this, SLOT(settingsListenerUpdateButtons()));
-	connect(settings_listener_addr_type, SIGNAL(buttonClicked(int)), this, SLOT(settingsListenerUpdateButtons()));
+	// Connect: Address
+	connect(settings_listener_address_edit, SIGNAL(textEdited(const QString&)), this, SLOT(settingsListenerAddressVerify(const QString&)));
+	connect(settings_listener_addr_type, SIGNAL(buttonClicked(int)), this, SLOT(settingsListenerAddressTypeUpdate()));
 
-	connect(settings_listener_port, SIGNAL(valueChanged(int)), this,         SLOT(settingsListenerUpdateButtons()));
-	connect(settings_listener_port, SIGNAL(valueChanged(int)), port_slider, SLOT(setValue(int)));
-	connect(port_slider, SIGNAL(valueChanged(int)), settings_listener_port, SLOT(setValue(int)));
+	connect(settings_listener_port_edit, SIGNAL(valueChanged(int)), this,        SLOT(settingsListenerPortVerify(int)));
+	connect(settings_listener_port_edit, SIGNAL(valueChanged(int)), port_slider, SLOT(setValue(int)));
+	connect(port_slider, SIGNAL(valueChanged(int)), settings_listener_port_edit, SLOT(setValue(int)));
 
 	connect(settings_listener_set_default, SIGNAL(clicked()), this, SLOT(settingsListenerSetDefaults()));
-	connect(settings_listener_set_default, SIGNAL(clicked()), this, SLOT(settingsListenerUpdateButtons()));
-
 	connect(settings_listener_use_now, SIGNAL(clicked()), this, SLOT(settingsListenerUseNow()));
-	connect(settings_listener_use_now, SIGNAL(clicked()), this, SLOT(settingsListenerUpdateButtons()));
 
 	// Initial Values
-	QString current_address = server_socket.serverAddress().toString();
-	QString ip4_localhost = QHostAddress(QHostAddress::LocalHost).toString();
-	QString ip4_any       = QHostAddress(QHostAddress::Any).toString();
-	QString ip6_localhost = QHostAddress(QHostAddress::LocalHostIPv6).toString();
-	QString ip6_any       = QHostAddress(QHostAddress::AnyIPv6).toString();
-
-	if(current_address == ip4_localhost)
+	if(default_address == QHostAddress::LocalHost)
 	{
 		addr_ip4_local->click();
 	}
-	else if(current_address == ip4_any)
+	else if(default_address == QHostAddress::Any)
 	{
 		addr_ip4_any->click();
 	}
-	else if(current_address == ip6_localhost)
+	else if(default_address == QHostAddress::LocalHostIPv6)
 	{
 		addr_ip6_local->click();
 	}
-	else if(current_address == ip6_any)
+	else if(default_address == QHostAddress::AnyIPv6)
 	{
 		addr_ip6_any->click();
 	}
 	else
 	{
 		addr_specific->click();
-		settings_listener_address->setText(current_address);
+		settings_listener_address_edit->setText(default_address.toString());
 	}
 
-	settings_listener_port->setValue(listener_port);
+	settings_listener_port_edit->setValue(default_port);
 
 	return listener;
 }
@@ -569,29 +616,48 @@ QWidget* Network::initSettingsListener()
  * \internal
  * \brief Check if the address is valid.
  *
- * The address in the settings_listener_address widget is checked for validity.  
- * If it is valid then its graphics effect is disabled.  However, if the 
- * address is not valid, then the graphics effect is enabled.
+ * The address in the settings_listener_address_edit widget is checked for 
+ * validity.  If it is valid then its graphics effect is disabled.  However, if 
+ * the address is not valid, then the graphics effect is enabled.
  */
-void Network::settingsListenerVerifyAddress(const QString& address)
+void Network::settingsListenerAddressVerify(const QString& address)
 {
-	QHostAddress host_address;
-
-	if(host_address.setAddress(address))
-	{
-		settings_listener_address->graphicsEffect()->setEnabled(false);
-	}
-	else
-	{
+	settings_listener_address.setAddress(address);
+	if(settings_listener_address.isNull())
+	{ // Bad Address
 		if(address.isEmpty())
-		{
-			settings_listener_address->graphicsEffect()->setEnabled(false);
+		{ // Empty is ok
+			settings_listener_address_edit->graphicsEffect()->setEnabled(false);
+			settings_listener_address_error->clear();
 		}
 		else
 		{
-			settings_listener_address->graphicsEffect()->setEnabled(true);
+			settings_listener_address_edit->graphicsEffect()->setEnabled(true);
+			settings_listener_address_error->setText(tr("Invalid Address"));
 		}
+
+		settings_listener_address.clear();
 	}
+	else
+	{ // Good Address
+		QTcpServer test_socket;
+
+		if(test_socket.listen(settings_listener_address, 0) == false)
+		{ // Bad Address
+			settings_listener_address.clear();
+			settings_listener_address_edit->graphicsEffect()->setEnabled(true);
+			settings_listener_address_error->setText(tr("Address not available"));
+		}
+		else
+		{ // Good Address
+			settings_listener_address_edit->graphicsEffect()->setEnabled(false);
+			settings_listener_address_error->clear();
+		}
+
+		test_socket.close();
+	}
+
+	settingsListenerUpdateButtons();
 }
 
 /**
@@ -601,69 +667,113 @@ void Network::settingsListenerVerifyAddress(const QString& address)
  * As the various listener settings are changed, some widgets may become valid 
  * or invalid.  This method will update the visual state of the widgets.
  */
-void Network::settingsListenerUpdateButtons()
+void Network::settingsListenerAddressTypeUpdate()
 {
-	QString new_address;
-	quint16 new_port = settings_listener_port->value();
-
 	int address_type = settings_listener_addr_type->checkedId();
 	switch(address_type)
 	{
 		case QHostAddress::Null:
-			settings_listener_address->setEnabled(true);
-			settingsListenerVerifyAddress(settings_listener_address->text());
-			if(!settings_listener_address->graphicsEffect()->isEnabled())
-			{
-				new_address = settings_listener_address->text();
-			}
+			settings_listener_address_edit->setEnabled(true);
+			settings_listener_address_error->setEnabled(true);
+			settingsListenerAddressVerify(
+				settings_listener_address_edit->text()
+				);
 			break;
 		case QHostAddress::LocalHost:
-			settings_listener_address->setEnabled(false);
-			new_address = QHostAddress(QHostAddress::LocalHost).toString();
+			settings_listener_address_edit->setEnabled(false);
+			settings_listener_address_error->setEnabled(false);
+			settings_listener_address = QHostAddress::LocalHost;
 			break;
 		case QHostAddress::Any:
-			settings_listener_address->setEnabled(false);
-			new_address = QHostAddress(QHostAddress::Any).toString();
+			settings_listener_address_edit->setEnabled(false);
+			settings_listener_address_error->setEnabled(false);
+			settings_listener_address = QHostAddress::Any;
 			break;
 		case QHostAddress::LocalHostIPv6:
-			settings_listener_address->setEnabled(false);
-			new_address = QHostAddress(QHostAddress::LocalHostIPv6).toString();
+			settings_listener_address_edit->setEnabled(false);
+			settings_listener_address_error->setEnabled(false);
+			settings_listener_address = QHostAddress::LocalHostIPv6;
 			break;
 		case QHostAddress::AnyIPv6:
-			settings_listener_address->setEnabled(false);
-			new_address = QHostAddress(QHostAddress::AnyIPv6).toString();
+			settings_listener_address_edit->setEnabled(false);
+			settings_listener_address_error->setEnabled(false);
+			settings_listener_address = QHostAddress::AnyIPv6;
 			break;
 	}
 
-	if(new_address.isNull() || new_address.isEmpty())
+	settingsListenerUpdateButtons();
+}
+
+void Network::settingsListenerPortVerify(int port)
+{
+	QTcpServer test_socket;
+
+	if(port == server_socket.serverPort()
+		|| test_socket.listen(QHostAddress::Any, port) == true)
+	{ // Good Port
+		settings_listener_port_error->clear();
+		settings_listener_port_edit->graphicsEffect()->setEnabled(false);
+		settings_listener_port = port;
+	}
+	else if(test_socket.listen(QHostAddress::Any, port) == true)
+	{ // Good Port
+		settings_listener_port_error->clear();
+		settings_listener_port_edit->graphicsEffect()->setEnabled(false);
+		settings_listener_port = port;
+	}
+	else
+	{ // Bad Port
+		if(port < 1024)
+		// And user is not root
+		{
+			settings_listener_port_error->setText("Permission Denied");
+		}
+		else
+		{
+			settings_listener_port_error->setText("Port In Use");
+		}
+
+		settings_listener_port_edit->graphicsEffect()->setEnabled(true);
+		settings_listener_port = -1;
+	}
+
+	test_socket.close();
+
+	settingsListenerUpdateButtons();
+}
+
+void Network::settingsListenerUpdateButtons()
+{
+	if(settings_listener_address.isNull()  // Invalid Address
+		|| settings_listener_port < 0  // Invalid Port
+		)
 	{
 		settings_listener_use_now->setEnabled(false);
 		settings_listener_set_default->setEnabled(false);
-		return;
-	}
-
-	QString current_address = server_socket.serverAddress().toString();
-	quint16 current_port = listener_port;
-
-	if(new_address == current_address && new_port == current_port)
-	{
-		settings_listener_use_now->setEnabled(false);
 	}
 	else
 	{
-		settings_listener_use_now->setEnabled(true);
-	}
+		if(settings_listener_address == server_socket.serverAddress()
+			&& settings_listener_port == listener_port
+			)
+		{
+			settings_listener_use_now->setEnabled(false);
+		}
+		else
+		{
+			settings_listener_use_now->setEnabled(true);
+		}
 
-	QString default_address = Kaiwa::getValue("Network", "Listener", "Address").toString();
-	quint16 default_port = Kaiwa::getValue("Network", "Listener", "Port", 0).toUInt();
-
-	if(new_address == default_address && new_port == default_port)
-	{
-		settings_listener_set_default->setEnabled(false);
-	}
-	else
-	{
-		settings_listener_set_default->setEnabled(true);
+		if(settings_listener_address == default_address
+			&& settings_listener_port == default_port
+			)
+		{
+			settings_listener_set_default->setEnabled(false);
+		}
+		else
+		{
+			settings_listener_set_default->setEnabled(true);
+		}
 	}
 }
 
@@ -673,30 +783,13 @@ void Network::settingsListenerUpdateButtons()
  */
 void Network::settingsListenerSetDefaults()
 {
-	QString address;
+	default_address = settings_listener_address;
+	default_port = settings_listener_port;
 
-	int address_type = settings_listener_addr_type->checkedId();
-	switch(address_type)
-	{
-		case QHostAddress::Null:
-			address = settings_listener_address->text();
-			break;
-		case QHostAddress::LocalHost:
-			address = QHostAddress(QHostAddress::LocalHost).toString();
-			break;
-		case QHostAddress::Any:
-			address = QHostAddress(QHostAddress::Any).toString();
-			break;
-		case QHostAddress::LocalHostIPv6:
-			address = QHostAddress(QHostAddress::LocalHostIPv6).toString();
-			break;
-		case QHostAddress::AnyIPv6:
-			address = QHostAddress(QHostAddress::AnyIPv6).toString();
-			break;
-	}
+	Kaiwa::putValue("Network", "Listener", "Address", settings_listener_address.toString());
+	Kaiwa::putValue("Network", "Listener", "Port", settings_listener_port);
 
-	Kaiwa::putValue("Network", "Listener", "Address", address);
-	Kaiwa::putValue("Network", "Listener", "Port", settings_listener_port->value());
+	settingsListenerUpdateButtons();
 }
 
 /**
@@ -705,29 +798,6 @@ void Network::settingsListenerSetDefaults()
  */
 void Network::settingsListenerUseNow()
 {
-	QHostAddress host_address;
-
-	int address_type = settings_listener_addr_type->checkedId();
-	switch(address_type)
-	{
-		case QHostAddress::Null:
-			host_address = QHostAddress(settings_listener_address->text());
-			break;
-		case QHostAddress::LocalHost:
-			host_address = QHostAddress(QHostAddress::LocalHost);
-			break;
-		case QHostAddress::Any:
-			host_address = QHostAddress(QHostAddress::Any);
-			break;
-		case QHostAddress::LocalHostIPv6:
-			host_address = QHostAddress(QHostAddress::LocalHostIPv6);
-			break;
-		case QHostAddress::AnyIPv6:
-			host_address = QHostAddress(QHostAddress::AnyIPv6);
-			break;
-	}
-
-	listener_port = settings_listener_port->value();
-
-	initListener(&host_address, &listener_port);
+	initListener(&settings_listener_address, &settings_listener_port);
+	settingsListenerUpdateButtons();
 }
