@@ -78,6 +78,18 @@ class QGridLayout;
  * Classes
  */
 
+/**
+ * \brief Handles all network activity.
+ *
+ * This object will take care of all network activity:
+ * - Connections
+ *   - Opening
+ *   - Closing
+ *   - [TODO] Allowing
+ * - Messages
+ *   - Sending
+ *   - Receiving
+ */
 class Network
 	: public QObject
 {

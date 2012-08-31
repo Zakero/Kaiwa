@@ -72,6 +72,12 @@ const char* toStr(const QString& //!< The QString to convert.
  * Classes
  */
 
+/**
+ * \brief The Kaiwa Main Window
+ *
+ * The Main Window initializes all the components and connects them together to 
+ * form the Kaiwa application.
+ */
 class Kaiwa
 	: public QMainWindow
 {
